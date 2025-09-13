@@ -8,11 +8,12 @@
     "start": "next start -p 3000"
   },
   "dependencies": {
+    "dayjs": "1.11.11",
+    "googleapis": "131.0.0",
     "next": "14.2.32",
+    "pg": "8.11.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "googleapis": "131.0.0",
-    "pg": "8.11.0",
-    "dayjs": "1.11.11"
+    "xlsx": "^0.18.5"
   }
 }
