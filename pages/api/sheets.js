@@ -1,77 +1,31 @@
-import { google } from 'googleapis';
+import XLSX from "xlsx";
 
-function tryParseJson(raw) {
-  if (!raw) throw new Error('Missing GOOGLE_SERVICE_ACCOUNT_JSON');
-  let s = String(raw).trim();
-  if ((s.startsWith("'") && s.endsWith("'")) || (s.startsWith('"') && s.endsWith('"'))) s = s.slice(1,-1);
-  s = s.replace(/\r\n/g,'\\n').replace(/\n/g,'\\n');
-  try { return JSON.parse(s); } catch(e){
-    try { return JSON.parse(s.replace(/\\\\n/g,'\\n')); } catch(e2){
-      throw new Error('Failed to parse GOOGLE_SERVICE_ACCOUNT_JSON: ' + e2.message);
-    }
-  }
-}
-
-export default async function handler(req, res){
+export default async function handler(req, res) {
   try {
-    const sheetId = process.env.GOOGLE_SHEET_ID;
-    if (!sheetId) return res.status(500).json({ error: 'Missing GOOGLE_SHEET_ID' });
+    // رابط تصدير الشيت كـ XLSX (من Google Sheets -> File -> Share -> Publish to web)
+    const XLSX_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDa_RClRJJzLiqGbIx4JKDRcbuhoBdZQSgXCXv-5xBix6gifHCwNvGgwZHe3v5kQfxrhs_i5AW9X2D/pub?output=xlsx";
 
-    const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-    let key;
-    try { key = tryParseJson(raw); } catch(e){
-      console.error('Service account parse error', e.message);
-      return res.status(500).json({ error: 'Invalid GOOGLE_SERVICE_ACCOUNT_JSON' });
-    }
+    const resp = await fetch(XLSX_URL);
+    if (!resp.ok) throw new Error(`Failed to fetch XLSX: ${resp.status}`);
+    const buffer = await resp.arrayBuffer();
 
-    const jwt = new google.auth.JWT(
-      key.client_email,
-      null,
-      key.private_key.replace(/\\n/g,'\n'),
-      ['https://www.googleapis.com/auth/spreadsheets.readonly']
-    );
-    await jwt.authorize();
-    const sheets = google.sheets({ version: 'v4', auth: jwt });
+    // قراءة الملف وتحويله إلى JSON
+    const wb = XLSX.read(buffer, { type: "array" });
 
-    const meta = await sheets.spreadsheets.get({ spreadsheetId: sheetId });
-    const sheetTitles = (meta.data.sheets || []).map(s=>s.properties.title).filter(Boolean);
+    // نحاول قراءة Sheets بالاسم لو موجودة وإلا نقرأ أول شيت
+    const detailedSheet =
+      wb.Sheets["الإنجاز التفصيلي"] || wb.Sheets["الانجاز التفصيلي"] || wb.Sheets[wb.SheetNames[0]];
+    const summarySheet = wb.Sheets["ملخص"] || wb.Sheets["summary"] || null;
+    const geoSheet = wb.Sheets["المواقع - جغرافيا"] || wb.Sheets["geo"] || null;
 
-    const find = (keys) => {
-      for (const t of sheetTitles){
-        for (const k of keys){
-          if (!k) continue;
-          if (t.toLowerCase().includes(k.toLowerCase())) return t;
-        }
-      }
-      return null;
-    };
+    const detailed = detailedSheet ? XLSX.utils.sheet_to_json(detailedSheet, { defval: null }) : [];
+    const summary = summarySheet ? XLSX.utils.sheet_to_json(summarySheet, { defval: null }) : [];
+    const geo = geoSheet ? XLSX.utils.sheet_to_json(geoSheet, { defval: null }) : [];
 
-    const detailedTitle = find(['الانجاز التفصيلي','الإنجاز التفصيلي','detailed','details']) || sheetTitles[0] || null;
-    const summaryTitle = find(['ملخص','summary','overview']) || null;
-    const geoTitle = find(['المواقع','جغرافيا','geo','locations']) || null;
-
-    const out = { detailed: [], summary: [], geo: [], detectedSheets: { detailedTitle, summaryTitle, geoTitle, all: sheetTitles } };
-
-    async function read(title){
-      if(!title) return [];
-      const resp = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range: title });
-      const rows = resp.data.values || [];
-      if(!rows.length) return [];
-      const headers = rows[0];
-      return rows.slice(1).map(r => {
-        const o = {};
-        for(let i=0;i<headers.length;i++) o[headers[i]] = r[i] ?? null;
-        return o;
-      });
-    }
-
-    out.detailed = await read(detailedTitle);
-    out.summary = await read(summaryTitle);
-    out.geo = await read(geoTitle);
-
-    return res.status(200).json({ data: out });
-  } catch(err){
-    console.error(err);
+    return res.status(200).json({ data: { detailed, summary, geo } });
+  } catch (err) {
+    console.error("Google Sheet XLSX fetch error:", err);
     return res.status(500).json({ error: err.message || String(err) });
   }
 }
