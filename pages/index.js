@@ -16,6 +16,11 @@ export default function Home() {
       <Script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js" strategy="beforeInteractive" />
       <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" strategy="beforeInteractive" />
 
+      {/* إضافة المكتبة الجديدة لمخطط Sunburst */}
+      <Script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sunburst@1.0.0/dist/chartjs-chart-sunburst.umd.min.js" strategy="beforeInteractive" />
+
+
+    
       <Script src="/js/app.js" strategy="afterInteractive" />
 
       <div id="app"></div>
