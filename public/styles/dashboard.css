@@ -52,11 +52,33 @@ body.light{--bg:#f7f9fc;--card:#fff;--muted:#6b7280;--text:#09102a;--glass: rgba
   to{opacity:1;transform:translateY(0)}
 }
 
-/* tabs */
-.tabs{display:block} /* تم إعادة تفعيل عرض علامات التبويب */
-.tab{padding:8px 12px;border-radius:10px;background:var(--card);cursor:pointer;border:1px solid rgba(255,255,255,0.03);transition:all 0.2s}
-.tab:hover{background:var(--glass)}
-.tab.active{box-shadow:0 6px 18px rgba(0,0,0,0.4);outline:2px solid rgba(79,140,255,0.08);background:linear-gradient(135deg,var(--accent1),var(--accent2))}
+/* tabs - تم تعديل التنسيق لجعله أزرارًا صغيرة */
+.tabs{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+  justify-content:flex-start; /* لضمان أن تكون الأزرار في بداية السطر */
+}
+.tab{
+  padding:6px 10px; /* تصغير المساحة الداخلية */
+  border-radius:8px; /* جعل الحواف مستديرة قليلاً */
+  background:var(--card);
+  color:var(--text);
+  font-size:13px; /* تصغير حجم الخط */
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,0.03);
+  transition:all 0.2s;
+}
+.tab:hover{
+  background:var(--glass);
+  transform:scale(1.02);
+}
+.tab.active{
+  box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  background:linear-gradient(135deg,var(--accent1),var(--accent2));
+  color:white;
+}
 
 /* filters */
 .filters{margin:12px 0;display:flex;gap:8px;align-items:center}
