@@ -30,35 +30,29 @@
         <button id="clearFilter" class="btn clear-btn" style="display:none;margin-right:8px;padding:6px 10px;background:var(--danger);border:none;border-radius:6px;color:white;cursor:pointer">🔄 إزالة الفلتر</button>
       </div>
 
-      <div class="grid" style="margin-bottom:12px">
-        <div id="kpiArea" class="card kpi"></div>
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 12px;">
+        <div id="kpiArea" class="card kpi" style="grid-column: span 2;"></div>
         
-        <div class="panel card">
+        <div class="panel card" style="grid-column: span 2;">
           <h3>مخطط/فعلي</h3>
           <canvas id="chartPlanActual"></canvas>
         </div>
         
-        <div class="panel card">
+        <div class="panel card" style="grid-column: span 2;">
           <h3>المواقع</h3>
-          <div id="map" style="height:320px;border-radius:8px"></div>
+          <div id="map" style="height:250px;border-radius:8px"></div>
         </div>
 
-        <div class="panel card">
+        <div class="panel card" style="grid-column: span 2;">
             <h3>مراحل / مواقع</h3>
-            <div id="sunburstChartContainer" style="height:320px; text-align: center; display: flex; align-items: center; justify-content: center;">
+            <div id="sunburstChartContainer" style="height:250px; text-align: center; display: flex; align-items: center; justify-content: center;">
                 <canvas id="sunburstChartCanvas"></canvas>
             </div>
         </div>
         
-        <div class="panel card">
+        <div class="panel card" style="grid-column: span 2;">
             <h3>إنجاز فعلي لكل المواقع</h3>
             <canvas id="chartOverallActual"></canvas>
-        </div>
-        
-        <div class="card full">
-          <h3 id="performanceTitle">أداء المواقع</h3>
-          <div id="donutArea" class="donuts"></div>
-          <div id="gaugeArea" style="display:none;text-align:center;padding:20px"></div>
         </div>
         
         <div class="card kpi">
@@ -74,6 +68,11 @@
             </div>
         </div>
 
+        <div class="card full" style="grid-column: span 4;">
+          <h3 id="performanceTitle">أداء المواقع</h3>
+          <div id="donutArea" class="donuts"></div>
+          <div id="gaugeArea" style="display:none;text-align:center;padding:20px"></div>
+        </div>
       </div>
     </div>
 
