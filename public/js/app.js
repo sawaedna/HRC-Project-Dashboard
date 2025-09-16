@@ -87,7 +87,7 @@
     charts: { main: null, donuts: [], gauge: null, sunburst: null },
     map: { instance: null, markers: [], originalView: null },
     selectedSite: null,
-    selectedStage: null, // تم إضافة حالة جديدة للمرحلة
+    selectedStage: null,
     lastUpdated: null,
     refreshIntervalId: null
   };
@@ -503,30 +503,30 @@
     
     const detailedData = state.raw.detailed;
     
-    // تجميع البيانات للمخطط
-    const dataBySite = detailedData.reduce((acc, row) => {
+    // تجميع البيانات للمخطط: المراحل في الحلقة الداخلية والمواقع في الخارجية
+    const dataByStage = detailedData.reduce((acc, row) => {
       const site = row['الموقع'];
       const stage = row['المرحلة'];
       if (!site || !stage) return acc;
-
-      if (!acc[site]) {
-        acc[site] = {};
+    
+      if (!acc[stage]) {
+        acc[stage] = {};
       }
-      if (!acc[site][stage]) {
-        acc[site][stage] = 0;
+      if (!acc[stage][site]) {
+        acc[stage][site] = 0;
       }
-      acc[site][stage] += 1;
+      acc[stage][site] += 1;
       return acc;
     }, {});
     
     // تحويل البيانات إلى تنسيق Sunburst
-    const sunburstData = Object.keys(dataBySite).map(site => {
-      const children = Object.keys(dataBySite[site]).map(stage => ({
-        label: stage,
-        value: dataBySite[site][stage]
+    const sunburstData = Object.keys(dataByStage).map(stage => {
+      const children = Object.keys(dataByStage[stage]).map(site => ({
+        label: site,
+        value: dataByStage[stage][site]
       }));
       return {
-        label: site,
+        label: stage,
         children: children
       };
     });
@@ -549,23 +549,26 @@
           const element = elements[0];
           const segment = element.element;
           
-          let siteLabel;
-          let stageLabel;
+          let siteLabel = null;
+          let stageLabel = null;
           
-          if (segment.innerRadius === 0) { // النقر على الحلقة الداخلية (المراحل)
-            const parentIndex = element._index;
-            siteLabel = sunburstData[parentIndex].label;
-            stageLabel = sunburstData[parentIndex].children[element._index].label;
-          } else { // النقر على الحلقة الخارجية (المواقع)
-            siteLabel = sunburstData[element._index].label;
-            stageLabel = null;
+          if (element._indexParent === undefined) {
+             // النقر على الحلقة الداخلية (المراحل)
+             stageLabel = sunburstData[element.index].label;
+          } else {
+             // النقر على الحلقة الخارجية (المواقع)
+             stageLabel = sunburstData[element._indexParent].label;
+             siteLabel = sunburstData[element._indexParent].children[element.index].label;
           }
           
           state.selectedSite = siteLabel;
           state.selectedStage = stageLabel;
           
-          const sel = document.getElementById('siteFilter');
-          if (sel) sel.value = siteLabel;
+          // تحديث قائمة الفلتر إذا تم فلترة الموقع
+          if(siteLabel) {
+            const sel = document.getElementById('siteFilter');
+            if (sel) sel.value = siteLabel;
+          }
           
           applyFilters();
           renderAll();
@@ -579,7 +582,7 @@
   function renderTable() {
     const cols = ['الموقع', 'المرحلة', 'البند الرئيسي', 'تاريخ البداية', 'المدة الكلية (يوم)', 'تاريخ النهاية', 'النسبة المخططة (%)', 'النسبة الفعلية (%)', 'الانحراف (%)'];
     const head = document.getElementById('tableHead');
-    if (!head) return; // حماية في حالة عدم وجود العنصر
+    if (!head) return;
     head.innerHTML = '<tr>' + cols.map(c => `<th data-key="${c}">${c}</th>`).join('') + '</tr>';
     head.querySelectorAll('th').forEach(th => th.addEventListener('click', () => {
       const k = th.dataset.key;
@@ -603,7 +606,7 @@
     }
 
     const body = document.getElementById('tableBody');
-    if (!body) return; // حماية
+    if (!body) return;
     body.innerHTML = rows.map(r => {
       const plan = r['النسبة المخططة (%)'] || r['النسبة المخططة'] || '';
       const act = r['النسبة الفعلية (%)'] || r['النسبة الفعلية'] || '';
