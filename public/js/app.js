@@ -43,19 +43,49 @@
           <div id="map" style="height:320px;border-radius:8px"></div>
         </div>
 
+        <!-- المكونات الجديدة من الصورة -->
+        <div class="panel card">
+            <h3>مراحل / مواقع</h3>
+            <div id="sunburstChartContainer" style="height:320px; text-align: center; display: flex; align-items: center; justify-content: center;">
+                <canvas id="sunburstChartCanvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="panel card">
+            <h3>إنجاز فعلي لكل المواقع</h3>
+            <canvas id="chartOverallActual"></canvas>
+        </div>
+        
         <div class="card full">
           <h3 id="performanceTitle">أداء المواقع</h3>
           <div id="donutArea" class="donuts"></div>
           <div id="gaugeArea" style="display:none;text-align:center;padding:20px"></div>
         </div>
         
-        <div id="sunburstChartContainer" class="card empty-container">
-          <canvas id="sunburstChartCanvas"></canvas>
+        <div class="card kpi">
+            <h3>الإنجاز الفعلي</h3>
+            <div id="gaugeActual" class="gauge-container"></div>
+        </div>
+        <div class="card kpi">
+            <h3>الإنجاز المخطط</h3>
+            <div id="gaugePlanned" class="gauge-container"></div>
         </div>
 
-        <div class="empty-container">مساحة فارغة #1</div>
-        <div class="empty-container">مساحة فارغة #2</div>
-        <div class="empty-container">مساحة فارغة #4</div>
+        <!-- الأزرار الجديدة -->
+        <div id="kpiCardsArea" class="card full">
+          <h3>بطاقات KPI</h3>
+          <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+            <button class="btn kpi-btn">عدد المواقع</button>
+            <button class="btn kpi-btn">متوسط المخطط</button>
+            <button class="btn kpi-btn">متوسط الفعلي</button>
+            <button class="btn kpi-btn">متوسط الانحراف</button>
+            <button class="btn kpi-btn">مدة المشروع</button>
+            <button class="btn kpi-btn">الأيام المنقضية</button>
+            <button class="btn kpi-btn">الأيام المتبقية</button>
+            <button class="btn kpi-btn">عدد البنود</button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -84,7 +114,8 @@
   const state = {
     raw: { detailed: [], summary: [], geo: [] },
     filtered: { detailed: [], summary: [], geo: [] },
-    charts: { main: null, donuts: [], gauge: null, sunburst: null },
+    charts: { main: null, donuts: [], gauge: null, sunburst: null, overallActual: null },
+    gauges: { planned: null, actual: null },
     map: { instance: null, markers: [], originalView: null },
     selectedSite: null,
     selectedStage: null,
@@ -242,6 +273,7 @@
     const avgActual = avg(summary.map(s => normalizePercent(s['متوسط النسبة الفعلية'] || s['النسبة الفعلية (%)'] || 0)));
     const avgDelta = avgActual - avgPlan;
     const pd = computeProjectDates();
+    const itemsCount = state.filtered.detailed.length;
 
     container.innerHTML = `
       <div class="card kpi"><h3>عدد المواقع</h3><div class="value">${sitesCount}</div></div>
@@ -251,6 +283,7 @@
       <div class="card kpi"><h3>مدة المشروع (يوم)</h3><div class="value">${pd ? pd.totalDays : '—'}</div></div>
       <div class="card kpi"><h3>الأيام المنقضية</h3><div class="value">${pd ? pd.elapsed : '—'}</div></div>
       <div class="card kpi"><h3>الأيام المتبقية</h3><div class="value">${pd ? pd.remaining : '—'}</div></div>
+      <div class="card kpi"><h3>عدد البنود</h3><div class="value">${itemsCount}</div></div>
     `;
   }
 
@@ -315,6 +348,49 @@
         },
         scales: { y: { beginAtZero: true, max: 100 } }
       }
+    });
+
+    // مخطط الإنجاز الفعلي لكل المواقع
+    try { state.charts.overallActual?.destroy(); } catch (e) {}
+
+    const overallActualCtx = document.getElementById('chartOverallActual').getContext('2d');
+    state.charts.overallActual = new Chart(overallActualCtx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'إنجاز فعلي %',
+                    data: actual,
+                    borderColor: 'rgba(34,197,94,0.95)',
+                    fill: false,
+                    tension: 0.1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, max: 100 }
+            },
+            onClick: (evt, elements) => {
+                if (!elements.length) return;
+                const idx = elements[0].index;
+                const site = labels[idx];
+                state.selectedSite = site;
+                state.selectedStage = null;
+                const sel = document.getElementById('siteFilter');
+                if (sel) sel.value = site;
+                applyFilters();
+                renderAll();
+                const summaryRow = (state.filtered.summary.length ? state.filtered.summary : aggregateSummaryFromDetails(true)).find(x => x['الموقع'] === site);
+                if (summaryRow && summaryRow.Latitude && summaryRow.Longitude) {
+                    try { 
+                        state.map.instance.setView([Number(summaryRow.Latitude), Number(summaryRow.Longitude)], 12, { animate: true });
+                    } catch (e) {}
+                }
+            }
+        }
     });
   }
 
@@ -430,6 +506,114 @@
     }
   }
 
+  // ======== رندر المقاييس (Gauges) للنسب المئوية ========
+  function renderGauges() {
+    if (typeof Chart === 'undefined') return;
+
+    const detailedData = state.filtered.detailed;
+    const totalActual = avg(detailedData.map(r => normalizePercent(r['النسبة الفعلية (%)'] || 0)));
+    const totalPlanned = avg(detailedData.map(r => normalizePercent(r['النسبة المخططة (%)'] || 0)));
+
+    // Gauge للإنجاز الفعلي
+    const actualCtx = document.getElementById('gaugeActual').querySelector('canvas')?.getContext('2d');
+    if (actualCtx) {
+        if (state.gauges.actual) { try { state.gauges.actual.destroy(); } catch (e) {} }
+        state.gauges.actual = new Chart(actualCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['الإنجاز الفعلي'],
+                datasets: [{
+                    data: [totalActual * 100, 100 - (totalActual * 100)],
+                    backgroundColor: ['var(--success)', 'rgba(255,255,255,0.1)'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '80%',
+                rotation: 270,
+                circumference: 180,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false },
+                    centerText: {
+                        text: `${(totalActual * 100).toFixed(1)}%`,
+                        color: 'var(--success)',
+                        font: '20px sans-serif'
+                    }
+                }
+            },
+            plugins: [{
+                id: 'centerText',
+                beforeDraw: (chart) => {
+                    const { ctx } = chart;
+                    const { text, color, font } = chart.options.plugins.centerText;
+                    const x = chart.getDatasetMeta(0).data[0].x;
+                    const y = chart.getDatasetMeta(0).data[0].y;
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = `700 ${font}`;
+                    ctx.fillStyle = color;
+                    ctx.fillText(text, x, y);
+                    ctx.restore();
+                }
+            }]
+        });
+    }
+
+    // Gauge للإنجاز المخطط
+    const plannedCtx = document.getElementById('gaugePlanned').querySelector('canvas')?.getContext('2d');
+    if (plannedCtx) {
+        if (state.gauges.planned) { try { state.gauges.planned.destroy(); } catch (e) {} }
+        state.gauges.planned = new Chart(plannedCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['الإنجاز المخطط'],
+                datasets: [{
+                    data: [totalPlanned * 100, 100 - (totalPlanned * 100)],
+                    backgroundColor: ['var(--accent1)', 'rgba(255,255,255,0.1)'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '80%',
+                rotation: 270,
+                circumference: 180,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false },
+                    centerText: {
+                        text: `${(totalPlanned * 100).toFixed(1)}%`,
+                        color: 'var(--accent1)',
+                        font: '20px sans-serif'
+                    }
+                }
+            },
+            plugins: [{
+                id: 'centerText',
+                beforeDraw: (chart) => {
+                    const { ctx } = chart;
+                    const { text, color, font } = chart.options.plugins.centerText;
+                    const x = chart.getDatasetMeta(0).data[0].x;
+                    const y = chart.getDatasetMeta(0).data[0].y;
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = `700 ${font}`;
+                    ctx.fillStyle = color;
+                    ctx.fillText(text, x, y);
+                    ctx.restore();
+                }
+            }]
+        });
+    }
+  }
+
+
   // ======== رندر الخريطة (Leaflet) مع حل مشكلة الثبات ========
   function renderMap() {
     const el = document.getElementById('map');
@@ -489,7 +673,7 @@
   
   // ======== رندر مخطط Sunburst ========
   function renderSunburstChart() {
-    if (typeof Chart === 'undefined' || typeof Chart.controllers.sunburst === 'undefined') {
+    if (typeof sunburst === 'undefined') {
       const el = document.getElementById('sunburstChartContainer');
       if (el) el.innerHTML = `
         <div style="text-align:center;color:var(--muted);font-weight:600">
@@ -499,82 +683,38 @@
       return;
     }
 
-    try { state.charts.sunburst?.destroy(); } catch (e) {}
+    const container = document.getElementById('sunburstChartContainer');
+    if (!container) return;
+    
+    // Clear previous sunburst
+    container.innerHTML = `<canvas id="sunburstChartCanvas"></canvas>`;
     
     const detailedData = state.raw.detailed;
     
-    // تجميع البيانات للمخطط: المراحل في الحلقة الداخلية والمواقع في الخارجية
     const dataByStage = detailedData.reduce((acc, row) => {
       const site = row['الموقع'];
       const stage = row['المرحلة'];
       if (!site || !stage) return acc;
-    
+      
       if (!acc[stage]) {
-        acc[stage] = {};
+        acc[stage] = { name: stage, children: [] };
       }
-      if (!acc[stage][site]) {
-        acc[stage][site] = 0;
-      }
-      acc[stage][site] += 1;
+      acc[stage].children.push({ name: site, value: 1 });
       return acc;
     }, {});
     
-    // تحويل البيانات إلى تنسيق Sunburst
-    const sunburstData = Object.keys(dataByStage).map(stage => {
-      const children = Object.keys(dataByStage[stage]).map(site => ({
-        label: site,
-        value: dataByStage[stage][site]
-      }));
-      return {
-        label: stage,
-        children: children
-      };
-    });
+    const sunburstData = {
+        name: 'التفاصيل',
+        children: Object.values(dataByStage)
+    };
     
-    const ctx = document.getElementById('sunburstChartCanvas').getContext('2d');
-    state.charts.sunburst = new Chart(ctx, {
-      type: 'sunburst',
-      data: {
-        labels: sunburstData.map(d => d.label),
-        datasets: [{
-          data: sunburstData,
-          backgroundColor: Chart.get
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (event, elements) => {
-          if (!elements.length) return;
-          const element = elements[0];
-          const segment = element.element;
-          
-          let siteLabel = null;
-          let stageLabel = null;
-          
-          if (element._indexParent === undefined) {
-             // النقر على الحلقة الداخلية (المراحل)
-             stageLabel = sunburstData[element.index].label;
-          } else {
-             // النقر على الحلقة الخارجية (المواقع)
-             stageLabel = sunburstData[element._indexParent].label;
-             siteLabel = sunburstData[element._indexParent].children[element.index].label;
-          }
-          
-          state.selectedSite = siteLabel;
-          state.selectedStage = stageLabel;
-          
-          // تحديث قائمة الفلتر إذا تم فلترة الموقع
-          if(siteLabel) {
-            const sel = document.getElementById('siteFilter');
-            if (sel) sel.value = siteLabel;
-          }
-          
-          applyFilters();
-          renderAll();
-        }
-      }
-    });
+    state.charts.sunburst = sunburst()
+        .data(sunburstData)
+        .size('value')
+        .label('name')
+        .width(container.clientWidth)
+        .height(container.clientHeight)
+        (document.getElementById('sunburstChartCanvas'));
   }
 
   // ======== جدول التفاصيل ========
@@ -637,6 +777,7 @@
     renderMap();
     renderPerformanceCharts();
     renderSunburstChart();
+    renderGauges();
     renderTable();
   }
 
