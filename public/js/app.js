@@ -43,7 +43,6 @@
           <div id="map" style="height:320px;border-radius:8px"></div>
         </div>
 
-        <!-- المكونات الجديدة من الصورة -->
         <div class="panel card">
             <h3>مراحل / مواقع</h3>
             <div id="sunburstChartContainer" style="height:320px; text-align: center; display: flex; align-items: center; justify-content: center;">
@@ -64,26 +63,15 @@
         
         <div class="card kpi">
             <h3>الإنجاز الفعلي</h3>
-            <div id="gaugeActual" class="gauge-container"></div>
+            <div id="gaugeActual" class="gauge-container" style="height: 150px; display: flex; align-items: center; justify-content: center; position: relative;">
+                <canvas></canvas>
+            </div>
         </div>
         <div class="card kpi">
             <h3>الإنجاز المخطط</h3>
-            <div id="gaugePlanned" class="gauge-container"></div>
-        </div>
-
-        <!-- الأزرار الجديدة -->
-        <div id="kpiCardsArea" class="card full">
-          <h3>بطاقات KPI</h3>
-          <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
-            <button class="btn kpi-btn">عدد المواقع</button>
-            <button class="btn kpi-btn">متوسط المخطط</button>
-            <button class="btn kpi-btn">متوسط الفعلي</button>
-            <button class="btn kpi-btn">متوسط الانحراف</button>
-            <button class="btn kpi-btn">مدة المشروع</button>
-            <button class="btn kpi-btn">الأيام المنقضية</button>
-            <button class="btn kpi-btn">الأيام المتبقية</button>
-            <button class="btn kpi-btn">عدد البنود</button>
-          </div>
+            <div id="gaugePlanned" class="gauge-container" style="height: 150px; display: flex; align-items: center; justify-content: center; position: relative;">
+                <canvas></canvas>
+            </div>
         </div>
 
       </div>
@@ -515,101 +503,87 @@
     const totalPlanned = avg(detailedData.map(r => normalizePercent(r['النسبة المخططة (%)'] || 0)));
 
     // Gauge للإنجاز الفعلي
-    const actualCtx = document.getElementById('gaugeActual').querySelector('canvas')?.getContext('2d');
-    if (actualCtx) {
-        if (state.gauges.actual) { try { state.gauges.actual.destroy(); } catch (e) {} }
-        state.gauges.actual = new Chart(actualCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['الإنجاز الفعلي'],
-                datasets: [{
-                    data: [totalActual * 100, 100 - (totalActual * 100)],
-                    backgroundColor: ['var(--success)', 'rgba(255,255,255,0.1)'],
-                    borderWidth: 0,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '80%',
-                rotation: 270,
-                circumference: 180,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: false },
-                    centerText: {
-                        text: `${(totalActual * 100).toFixed(1)}%`,
-                        color: 'var(--success)',
-                        font: '20px sans-serif'
-                    }
-                }
-            },
-            plugins: [{
-                id: 'centerText',
-                beforeDraw: (chart) => {
-                    const { ctx } = chart;
-                    const { text, color, font } = chart.options.plugins.centerText;
-                    const x = chart.getDatasetMeta(0).data[0].x;
-                    const y = chart.getDatasetMeta(0).data[0].y;
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `700 ${font}`;
-                    ctx.fillStyle = color;
-                    ctx.fillText(text, x, y);
-                    ctx.restore();
-                }
-            }]
-        });
+    const actualCanvas = document.getElementById('gaugeActual').querySelector('canvas');
+    if (actualCanvas) {
+      if (state.gauges.actual) { state.gauges.actual.destroy(); }
+      const ctx = actualCanvas.getContext('2d');
+      state.gauges.actual = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+              labels: ['الإنجاز الفعلي', 'المتبقي'],
+              datasets: [{
+                  data: [totalActual * 100, 100 - (totalActual * 100)],
+                  backgroundColor: ['var(--success)', 'rgba(255,255,255,0.1)'],
+                  borderWidth: 0,
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '80%',
+              rotation: 270,
+              circumference: 180,
+              plugins: {
+                  legend: { display: false },
+                  tooltip: { enabled: false }
+              }
+          }
+      });
+      const valueSpan = document.createElement('span');
+      valueSpan.textContent = `${(totalActual * 100).toFixed(1)}%`;
+      valueSpan.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -10%);
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--success);
+        direction: ltr;
+      `;
+      document.getElementById('gaugeActual').appendChild(valueSpan);
     }
 
     // Gauge للإنجاز المخطط
-    const plannedCtx = document.getElementById('gaugePlanned').querySelector('canvas')?.getContext('2d');
-    if (plannedCtx) {
-        if (state.gauges.planned) { try { state.gauges.planned.destroy(); } catch (e) {} }
-        state.gauges.planned = new Chart(plannedCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['الإنجاز المخطط'],
-                datasets: [{
-                    data: [totalPlanned * 100, 100 - (totalPlanned * 100)],
-                    backgroundColor: ['var(--accent1)', 'rgba(255,255,255,0.1)'],
-                    borderWidth: 0,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '80%',
-                rotation: 270,
-                circumference: 180,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: false },
-                    centerText: {
-                        text: `${(totalPlanned * 100).toFixed(1)}%`,
-                        color: 'var(--accent1)',
-                        font: '20px sans-serif'
-                    }
-                }
-            },
-            plugins: [{
-                id: 'centerText',
-                beforeDraw: (chart) => {
-                    const { ctx } = chart;
-                    const { text, color, font } = chart.options.plugins.centerText;
-                    const x = chart.getDatasetMeta(0).data[0].x;
-                    const y = chart.getDatasetMeta(0).data[0].y;
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `700 ${font}`;
-                    ctx.fillStyle = color;
-                    ctx.fillText(text, x, y);
-                    ctx.restore();
-                }
-            }]
-        });
+    const plannedCanvas = document.getElementById('gaugePlanned').querySelector('canvas');
+    if (plannedCanvas) {
+      if (state.gauges.planned) { state.gauges.planned.destroy(); }
+      const ctx = plannedCanvas.getContext('2d');
+      state.gauges.planned = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+              labels: ['الإنجاز المخطط', 'المتبقي'],
+              datasets: [{
+                  data: [totalPlanned * 100, 100 - (totalPlanned * 100)],
+                  backgroundColor: ['var(--accent1)', 'rgba(255,255,255,0.1)'],
+                  borderWidth: 0,
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '80%',
+              rotation: 270,
+              circumference: 180,
+              plugins: {
+                  legend: { display: false },
+                  tooltip: { enabled: false }
+              }
+          }
+      });
+      const valueSpan = document.createElement('span');
+      valueSpan.textContent = `${(totalPlanned * 100).toFixed(1)}%`;
+      valueSpan.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -10%);
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--accent1);
+        direction: ltr;
+      `;
+      document.getElementById('gaugePlanned').appendChild(valueSpan);
     }
   }
 
