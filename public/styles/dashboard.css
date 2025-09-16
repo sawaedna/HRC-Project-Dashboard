@@ -8,11 +8,13 @@
   --success:#16a34a;
   --danger:#ef4444;
   --glass: rgba(255,255,255,0.03);
+  --empty-box: rgba(255,255,255,0.06); /* لون جديد للحاويات الفارغة */
 }
 body{margin:0;font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);transition:background .25s,color .25s}
 body.light{--bg:#f7f9fc;--card:#fff;--muted:#6b7280;--text:#09102a;--glass: rgba(0,0,0,0.04)}
 
-.container{max-width:1200px;margin:18px auto;padding:20px}
+/* تم تعديل الحاوية الرئيسية لملء العرض بالكامل */
+.container{max-width:100%;margin:18px auto;padding:20px}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:12px}
 .badge{background:linear-gradient(90deg,var(--accent1),var(--accent2));padding:6px 10px;border-radius:999px;font-weight:700}
@@ -52,7 +54,7 @@ body.light{--bg:#f7f9fc;--card:#fff;--muted:#6b7280;--text:#09102a;--glass: rgba
 }
 
 /* tabs */
-.tabs{display:flex;gap:8px;margin-top:12px}
+.tabs{display:none} /* إخفاء علامات التبويب لأننا نريد صفحة واحدة */
 .tab{padding:8px 12px;border-radius:10px;background:var(--card);cursor:pointer;border:1px solid rgba(255,255,255,0.03);transition:all 0.2s}
 .tab:hover{background:var(--glass)}
 .tab.active{box-shadow:0 6px 18px rgba(0,0,0,0.4);outline:2px solid rgba(79,140,255,0.08);background:linear-gradient(135deg,var(--accent1),var(--accent2))}
@@ -62,8 +64,12 @@ body.light{--bg:#f7f9fc;--card:#fff;--muted:#6b7280;--text:#09102a;--glass: rgba
 .select{background:var(--card);color:var(--text);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);transition:all 0.2s}
 .select:focus{outline:2px solid var(--accent1);background:var(--glass)}
 
-/* grid */
-.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+/* grid - تم تعديلها لتكون مرنة وتلقائية */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:12px;
+}
 .card{
   background:var(--card);
   border-radius:12px;
@@ -78,7 +84,8 @@ body.light{--bg:#f7f9fc;--card:#fff;--muted:#6b7280;--text:#09102a;--glass: rgba
   box-shadow:0 15px 40px rgba(0,0,0,0.45);
 }
 
-.kpi{grid-column:span 3;padding:12px}
+/* تم إزالة تقسيم الأعمدة المحددة لـ KPI واللوحات واستبدالها بالشبكة الجديدة */
+.kpi{padding:12px}
 .kpi h3{margin:0;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:0.5px}
 .kpi .value{
   font-size:20px;
@@ -90,9 +97,8 @@ body.light{--bg:#f7f9fc;--card:#fff;--muted:#6b7280;--text:#09102a;--glass: rgba
   background-clip:text;
 }
 
-/* panels */
-.panel{grid-column:span 6;padding:12px}
-.full{grid-column:span 12;padding:12px}
+.panel{padding:12px}
+.full{padding:12px}
 
 /* donuts area */
 .donuts{
@@ -176,12 +182,12 @@ tbody tr:hover{background:var(--glass)}
 
 /* responsive */
 @media(max-width:1024px){
-  .kpi{grid-column:span 6}
+  /* تم إزالة التعديلات الخاصة بعرض الأعمدة لأنها أصبحت مرنة */
   .panel{grid-column:span 12}
   .donuts{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 }
 @media(max-width:640px){
-  .kpi{grid-column:span 12}
+  /* تم إزالة التعديلات الخاصة بعرض الأعمدة لأنها أصبحت مرنة */
   .container{padding:12px;margin:10px auto}
   .topbar{flex-direction:column;text-align:center}
   .donuts{grid-template-columns:1fr}
@@ -202,4 +208,25 @@ tbody tr:hover{background:var(--glass)}
 }
 #map:hover{
   box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* فئة جديدة للحاويات الفارغة */
+.empty-container {
+  background: var(--empty-box);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  border: 1px dashed var(--muted); /* حدود منقطة لتمييزها */
+  min-height: 200px; /* لضمان ظهورها */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-weight: 600;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+.empty-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.45);
 }
