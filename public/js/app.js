@@ -18,7 +18,14 @@
       </div>
     </div>
     
-    <div id="viewSummary" style="display:block"> <div class="filters" style="margin-top:12px">
+    <div class="tabs" style="margin-top:10px">
+      <div class="tab active" data-tab="summary">الملخص</div>
+      <div class="tab" data-tab="details">التفاصيل</div>
+    </div>
+
+    <div id="viewSummary">
+
+      <div class="filters" style="margin-top:12px">
         <select id="siteFilter" class="select"><option value="">كل المواقع</option></select>
         <button id="clearFilter" class="btn clear-btn" style="display:none;margin-right:8px;padding:6px 10px;background:var(--danger);border:none;border-radius:6px;color:white;cursor:pointer">🔄 إزالة الفلتر</button>
       </div>
@@ -41,28 +48,30 @@
           <div id="donutArea" class="donuts"></div>
           <div id="gaugeArea" style="display:none;text-align:center;padding:20px"></div>
         </div>
-
+        
         <div class="empty-container">مساحة فارغة #1</div>
         <div class="empty-container">مساحة فارغة #2</div>
         <div class="empty-container">مساحة فارغة #3</div>
         <div class="empty-container">مساحة فارغة #4</div>
-        
-        <div class="table-wrap card full">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px">
-            <strong>التفاصيل</strong>
-            <input id="searchInput" placeholder="ابحث..." style="padding:8px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.03)" />
-          </div>
-          <div style="overflow:auto">
-            <table id="dataTable">
-              <thead id="tableHead"></thead>
-              <tbody id="tableBody"></tbody>
-            </table>
-          </div>
-          <div id="tableFooter" class="table-footer"></div>
-        </div>
       </div>
-
     </div>
+
+    <div id="viewDetails" style="display:none">
+      <div class="table-wrap card full" style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px">
+          <strong>التفاصيل</strong>
+          <input id="searchInput" placeholder="ابحث..." style="padding:8px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.03)" />
+        </div>
+        <div style="overflow:auto">
+          <table id="dataTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div id="tableFooter" class="table-footer"></div>
+      </div>
+    </div>
+
   </div>
 
   <div id="loader" class="loader" style="display:none"><div class="spinner"></div></div>
@@ -554,9 +563,20 @@
 
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.addEventListener('input', () => renderTable());
-
-  // تم إزالة أحداث التبويبات لأننا الآن في صفحة واحدة
-  // document.querySelectorAll('.tab').forEach(...)
+  
+  // إعادة تفعيل أحداث التبويبات للتحكم في العرض
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.dataset.tab;
+    document.getElementById('viewSummary').style.display = tab === 'summary' ? 'block' : 'none';
+    document.getElementById('viewDetails').style.display = tab === 'details' ? 'block' : 'none';
+    
+    // عند التبديل إلى جدول التفاصيل، أعد رندر الجدول لضمان عرض المحتوى
+    if(tab === 'details') {
+      renderTable();
+    }
+  }));
 
   // ======== تحميل وجدولة التحديث كل 60 ثانية ========
   async function loadAndSchedule() {
