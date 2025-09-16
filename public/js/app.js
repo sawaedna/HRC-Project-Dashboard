@@ -17,54 +17,51 @@
         <button id="themeBtn" class="btn">🌓</button>
       </div>
     </div>
-
-    <div class="tabs" style="margin-top:10px">
-      <div class="tab active" data-tab="summary">الملخص</div>
-      <div class="tab" data-tab="details">التفاصيل</div>
-    </div>
-
-    <div id="viewSummary">
-
-      <div class="filters" style="margin-top:12px">
+    
+    <div id="viewSummary" style="display:block"> <div class="filters" style="margin-top:12px">
         <select id="siteFilter" class="select"><option value="">كل المواقع</option></select>
         <button id="clearFilter" class="btn clear-btn" style="display:none;margin-right:8px;padding:6px 10px;background:var(--danger);border:none;border-radius:6px;color:white;cursor:pointer">🔄 إزالة الفلتر</button>
       </div>
 
-      <div id="kpiArea" class="grid" style="margin-bottom:12px"></div>
-
       <div class="grid" style="margin-bottom:12px">
+        <div id="kpiArea" class="card kpi"></div>
+        
         <div class="panel card">
           <h3>مخطط/فعلي</h3>
           <canvas id="chartPlanActual"></canvas>
         </div>
+        
         <div class="panel card">
           <h3>المواقع</h3>
           <div id="map" style="height:320px;border-radius:8px"></div>
         </div>
-      </div>
 
-      <div class="card full">
-        <h3 id="performanceTitle">أداء المواقع</h3>
-        <div id="donutArea" class="donuts"></div>
-        <div id="gaugeArea" style="display:none;text-align:center;padding:20px"></div>
-      </div>
-
-    </div>
-
-    <div id="viewDetails" style="display:none">
-      <div class="table-wrap card" style="margin-top:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px">
-          <strong>التفاصيل</strong>
-          <input id="searchInput" placeholder="ابحث..." style="padding:8px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.03)" />
+        <div class="card full">
+          <h3 id="performanceTitle">أداء المواقع</h3>
+          <div id="donutArea" class="donuts"></div>
+          <div id="gaugeArea" style="display:none;text-align:center;padding:20px"></div>
         </div>
-        <div style="overflow:auto">
-          <table id="dataTable">
-            <thead id="tableHead"></thead>
-            <tbody id="tableBody"></tbody>
-          </table>
+
+        <div class="empty-container">مساحة فارغة #1</div>
+        <div class="empty-container">مساحة فارغة #2</div>
+        <div class="empty-container">مساحة فارغة #3</div>
+        <div class="empty-container">مساحة فارغة #4</div>
+        
+        <div class="table-wrap card full">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px">
+            <strong>التفاصيل</strong>
+            <input id="searchInput" placeholder="ابحث..." style="padding:8px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.03)" />
+          </div>
+          <div style="overflow:auto">
+            <table id="dataTable">
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+          <div id="tableFooter" class="table-footer"></div>
         </div>
-        <div id="tableFooter" class="table-footer"></div>
       </div>
+
     </div>
   </div>
 
@@ -222,6 +219,7 @@
   // ======== رندر KPIs ========
   function renderKPIs() {
     const container = document.getElementById('kpiArea');
+    if (!container) return; // حماية في حالة عدم وجود العنصر
     const summary = state.filtered.summary.length ? state.filtered.summary : aggregateSummaryFromDetails(true);
     const sitesCount = new Set(state.filtered.detailed.map(r => r['الموقع'] || r['SiteKey'])).size;
     const avgPlan = avg(summary.map(s => normalizePercent(s['متوسط النسبة المخططة'] || s['النسبة المخططة (%)'] || 0)));
@@ -232,7 +230,7 @@
     container.innerHTML = `
       <div class="card kpi"><h3>عدد المواقع</h3><div class="value">${sitesCount}</div></div>
       <div class="card kpi"><h3>متوسط المخطط</h3><div class="value">${pct(avgPlan)}</div></div>
-      <div class="card kpi"><h3>متوسط الفعلي</h3><div class="value">${pct(avgActual)}</div></div>
+      <div class="card kpi"><h3>متوسط الفعلي</h3><div class="value" style="color:${avgDelta<0?'var(--danger)':'var(--success)'}">${pct(avgActual)}</div></div>
       <div class="card kpi"><h3>متوسط الانحراف</h3><div class="value" style="color:${avgDelta<0?'var(--danger)':'var(--success)'}">${pct(avgDelta)}</div></div>
       <div class="card kpi"><h3>مدة المشروع (يوم)</h3><div class="value">${pd ? pd.totalDays : '—'}</div></div>
       <div class="card kpi"><h3>الأيام المنقضية</h3><div class="value">${pd ? pd.elapsed : '—'}</div></div>
@@ -475,6 +473,7 @@
   function renderTable() {
     const cols = ['الموقع', 'المرحلة', 'البند الرئيسي', 'تاريخ البداية', 'المدة الكلية (يوم)', 'تاريخ النهاية', 'النسبة المخططة (%)', 'النسبة الفعلية (%)', 'الانحراف (%)'];
     const head = document.getElementById('tableHead');
+    if (!head) return; // حماية في حالة عدم وجود العنصر
     head.innerHTML = '<tr>' + cols.map(c => `<th data-key="${c}">${c}</th>`).join('') + '</tr>';
     head.querySelectorAll('th').forEach(th => th.addEventListener('click', () => {
       const k = th.dataset.key;
@@ -498,6 +497,7 @@
     }
 
     const body = document.getElementById('tableBody');
+    if (!body) return; // حماية
     body.innerHTML = rows.map(r => {
       const plan = r['النسبة المخططة (%)'] || r['النسبة المخططة'] || '';
       const act = r['النسبة الفعلية (%)'] || r['النسبة الفعلية'] || '';
@@ -517,7 +517,8 @@
         <td>${delta}</td>
       </tr>`;
     }).join('');
-    document.getElementById('tableFooter').textContent = `عدد الصفوف: ${rows.length}`;
+    const footer = document.getElementById('tableFooter');
+    if (footer) footer.textContent = `عدد الصفوف: ${rows.length}`;
   }
 
   // ======== تجميع كل الرندرات ========
@@ -554,14 +555,8 @@
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.addEventListener('input', () => renderTable());
 
-  // tabs
-  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-    t.classList.add('active');
-    const tab = t.dataset.tab;
-    document.getElementById('viewSummary').style.display = tab === 'summary' ? 'block' : 'none';
-    document.getElementById('viewDetails').style.display = tab === 'details' ? 'block' : 'none';
-  }));
+  // تم إزالة أحداث التبويبات لأننا الآن في صفحة واحدة
+  // document.querySelectorAll('.tab').forEach(...)
 
   // ======== تحميل وجدولة التحديث كل 60 ثانية ========
   async function loadAndSchedule() {
