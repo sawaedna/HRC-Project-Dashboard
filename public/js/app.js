@@ -49,9 +49,12 @@
           <div id="gaugeArea" style="display:none;text-align:center;padding:20px"></div>
         </div>
         
+        <div id="sunburstChartContainer" class="card empty-container">
+          <canvas id="sunburstChartCanvas"></canvas>
+        </div>
+
         <div class="empty-container">مساحة فارغة #1</div>
         <div class="empty-container">مساحة فارغة #2</div>
-        <div class="empty-container">مساحة فارغة #3</div>
         <div class="empty-container">مساحة فارغة #4</div>
       </div>
     </div>
@@ -81,7 +84,7 @@
   const state = {
     raw: { detailed: [], summary: [], geo: [] },
     filtered: { detailed: [], summary: [], geo: [] },
-    charts: { main: null, donuts: [], gauge: null },
+    charts: { main: null, donuts: [], gauge: null, sunburst: null },
     map: { instance: null, markers: [], originalView: null },
     selectedSite: null,
     lastUpdated: null,
@@ -228,7 +231,7 @@
   // ======== رندر KPIs ========
   function renderKPIs() {
     const container = document.getElementById('kpiArea');
-    if (!container) return; // حماية في حالة عدم وجود العنصر
+    if (!container) return;
     const summary = state.filtered.summary.length ? state.filtered.summary : aggregateSummaryFromDetails(true);
     const sitesCount = new Set(state.filtered.detailed.map(r => r['الموقع'] || r['SiteKey'])).size;
     const avgPlan = avg(summary.map(s => normalizePercent(s['متوسط النسبة المخططة'] || s['النسبة المخططة (%)'] || 0)));
@@ -476,6 +479,86 @@
       }
     });
   }
+  
+  // ======== رندر مخطط Sunburst ========
+  function renderSunburstChart() {
+    if (typeof Chart === 'undefined' || typeof Chart.controllers.sunburst === 'undefined') {
+      const el = document.getElementById('sunburstChartContainer');
+      if (el) el.innerHTML = `
+        <div style="text-align:center;color:var(--muted);font-weight:600">
+          مخطط Sunburst غير متوفر.
+        </div>
+      `;
+      return;
+    }
+
+    try { state.charts.sunburst?.destroy(); } catch (e) {}
+    
+    const detailedData = state.raw.detailed;
+    
+    // تجميع البيانات للمخطط
+    const dataBySite = detailedData.reduce((acc, row) => {
+      const site = row['الموقع'];
+      const stage = row['المرحلة'];
+      if (!site || !stage) return acc;
+
+      if (!acc[site]) {
+        acc[site] = {};
+      }
+      if (!acc[site][stage]) {
+        acc[site][stage] = 0;
+      }
+      acc[site][stage] += 1;
+      return acc;
+    }, {});
+    
+    // تحويل البيانات إلى تنسيق Sunburst
+    const sunburstData = Object.keys(dataBySite).map(site => {
+      const children = Object.keys(dataBySite[site]).map(stage => ({
+        label: stage,
+        value: dataBySite[site][stage]
+      }));
+      return {
+        label: site,
+        children: children
+      };
+    });
+    
+    const ctx = document.getElementById('sunburstChartCanvas').getContext('2d');
+    state.charts.sunburst = new Chart(ctx, {
+      type: 'sunburst',
+      data: {
+        labels: sunburstData.map(d => d.label),
+        datasets: [{
+          data: sunburstData,
+          backgroundColor: Chart.get
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (event, elements) => {
+          if (!elements.length) return;
+          const element = elements[0];
+          const data = element._chart.data.datasets[0].data[element._index];
+          
+          if (data.children) {
+            // هذا هو المربع الخارجي (الموقع)
+            state.selectedSite = data.label;
+            document.getElementById('siteFilter').value = data.label;
+          } else {
+            // هذا هو المربع الداخلي (المرحلة)
+            const parentLabel = element._chart.data.datasets[0].data[element._indexParent].label;
+            state.selectedSite = parentLabel;
+            document.getElementById('siteFilter').value = parentLabel;
+            // يمكنك إضافة منطق فلترة للمرحلة هنا إذا كان مطلوبًا
+          }
+          applyFilters();
+          renderAll();
+        }
+      }
+    });
+  }
 
   // ======== جدول التفاصيل ========
   let sort = { key: null, asc: true };
@@ -536,6 +619,7 @@
     renderCharts();
     renderMap();
     renderPerformanceCharts();
+    renderSunburstChart();
     renderTable();
   }
 
