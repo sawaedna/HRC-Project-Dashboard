@@ -87,6 +87,7 @@
     charts: { main: null, donuts: [], gauge: null, sunburst: null },
     map: { instance: null, markers: [], originalView: null },
     selectedSite: null,
+    selectedStage: null, // تم إضافة حالة جديدة للمرحلة
     lastUpdated: null,
     refreshIntervalId: null
   };
@@ -190,16 +191,19 @@
     sel.innerHTML = '<option value="">كل المواقع</option>' + sites.map(s => `<option value="${s}">${s}</option>`).join('');
   }
 
-  // ======== فلترة مترابطة (تحترم state.selectedSite) ========
+  // ======== فلترة مترابطة (تحترم state.selectedSite و state.selectedStage) ========
   function applyFilters() {
     const site = state.selectedSite || (document.getElementById('siteFilter')?.value || '');
-    state.filtered.detailed = state.raw.detailed.filter(r => !site || (String(r['الموقع'] || '') === String(site)));
+    state.filtered.detailed = state.raw.detailed.filter(r => 
+      (!site || (String(r['الموقع'] || '') === String(site))) &&
+      (!state.selectedStage || (String(r['المرحلة'] || '') === String(state.selectedStage)))
+    );
     state.filtered.summary = state.raw.summary.filter(r => !site || (String(r['الموقع'] || '') === String(site)));
     state.filtered.geo = state.raw.geo.filter(r => !site || (String(r['الموقع'] || '') === String(site)));
     
     // إظهار/إخفاء زر إزالة الفلتر
     const clearBtn = document.getElementById('clearFilter');
-    if (site) {
+    if (site || state.selectedStage) {
       clearBtn.style.display = 'inline-block';
     } else {
       clearBtn.style.display = 'none';
@@ -296,6 +300,7 @@
           const idx = elements[0].index;
           const site = labels[idx];
           state.selectedSite = site;
+          state.selectedStage = null;
           const sel = document.getElementById('siteFilter');
           if (sel) sel.value = site;
           applyFilters();
@@ -405,6 +410,7 @@
             plugins: { legend: { display: false } },
             onClick: () => {
               state.selectedSite = s['الموقع'];
+              state.selectedStage = null;
               const sel = document.getElementById('siteFilter');
               if (sel) sel.value = s['الموقع'];
               applyFilters();
@@ -467,6 +473,7 @@
         marker.bindPopup(`<strong>${s['الموقع']}</strong><br>مخطط: ${pct(plan)}<br>فعلي: ${pct(actual)}<br>انحراف: ${pct(delta)}`);
         marker.on('click', () => {
           state.selectedSite = s['الموقع'];
+          state.selectedStage = null;
           const sel = document.getElementById('siteFilter');
           if (sel) sel.value = s['الموقع'];
           applyFilters();
@@ -540,19 +547,26 @@
         onClick: (event, elements) => {
           if (!elements.length) return;
           const element = elements[0];
-          const data = element._chart.data.datasets[0].data[element._index];
+          const segment = element.element;
           
-          if (data.children) {
-            // هذا هو المربع الخارجي (الموقع)
-            state.selectedSite = data.label;
-            document.getElementById('siteFilter').value = data.label;
-          } else {
-            // هذا هو المربع الداخلي (المرحلة)
-            const parentLabel = element._chart.data.datasets[0].data[element._indexParent].label;
-            state.selectedSite = parentLabel;
-            document.getElementById('siteFilter').value = parentLabel;
-            // يمكنك إضافة منطق فلترة للمرحلة هنا إذا كان مطلوبًا
+          let siteLabel;
+          let stageLabel;
+          
+          if (segment.innerRadius === 0) { // النقر على الحلقة الداخلية (المراحل)
+            const parentIndex = element._index;
+            siteLabel = sunburstData[parentIndex].label;
+            stageLabel = sunburstData[parentIndex].children[element._index].label;
+          } else { // النقر على الحلقة الخارجية (المواقع)
+            siteLabel = sunburstData[element._index].label;
+            stageLabel = null;
           }
+          
+          state.selectedSite = siteLabel;
+          state.selectedStage = stageLabel;
+          
+          const sel = document.getElementById('siteFilter');
+          if (sel) sel.value = siteLabel;
+          
           applyFilters();
           renderAll();
         }
@@ -626,6 +640,7 @@
   // ======== Events ========
   document.getElementById('siteFilter').addEventListener('change', () => {
     state.selectedSite = document.getElementById('siteFilter').value || null;
+    state.selectedStage = null;
     applyFilters();
     renderAll();
   });
@@ -633,6 +648,7 @@
   // زر إزالة الفلتر
   document.getElementById('clearFilter').addEventListener('click', () => {
     state.selectedSite = null;
+    state.selectedStage = null;
     const sel = document.getElementById('siteFilter');
     if (sel) sel.value = '';
     applyFilters();
