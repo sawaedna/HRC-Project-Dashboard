@@ -55,7 +55,7 @@ export default function Home() {
           <div id="kpiArea" className="grid" style={{ marginBottom: '12px' }}></div>
 
           <div className="grid" style={{ marginBottom: '12px' }}>
-            <div className="panel card" style={{ position: 'relative' }}>
+            <div className="panel card" style={{ position: 'relative', height: '350px' }}>
               <div className="chart-filter">
                 <select id="chartSiteFilter" className="select" style={{ fontSize: '12px', padding: '4px 6px' }}><option value="">كل المواقع</option></select>
               </div>
@@ -67,9 +67,8 @@ export default function Home() {
                 <select id="mapSiteFilter" className="select" style={{ fontSize: '12px', padding: '4px 6px' }}><option value="">كل المواقع</option></select>
               </div>
               <h3 style={{ marginTop: '25px' }}>المواقع</h3>
-              <div id="map" style={{ height: '320px', borderRadius: '8px' }}></div>
+              <div id="map" style={{ height: '350px', borderRadius: '8px' }}></div>
             </div>
-          </div>
 
           <div className="card full">
             <div className="chart-header">
