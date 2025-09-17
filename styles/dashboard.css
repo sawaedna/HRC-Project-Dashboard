@@ -32,6 +32,14 @@ body.light{
   gap:16px;
 }
 
+.right-aligned-content {
+  max-width: 1200px;
+  margin: 6px 8px 6px auto;
+  padding: 8px;
+  display: grid;
+  gap: 16px;
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -144,6 +152,19 @@ body.light{
   box-shadow:0 2px 8px rgba(0,0,0,0.1);
   margin:20px 0;
   background:var(--card);
+}
+
+/* New class for map content */
+.map-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.map-body > #map {
+  flex-grow: 1;
+  margin: 0;
 }
 
 /* Improve map popup styles */
@@ -448,15 +469,27 @@ body.light .select:focus{
 
 /* Chart filter overlay */
 .chart-filter{
-  position:absolute;
-  top:10px;
-  left:10px;
   z-index:10;
   display:flex;
   gap:6px;
   align-items:center;
 }
-
+.map-filter{
+  z-index:1000;
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+.panel-header h3 {
+  margin: 0;
+}
 /* donuts area */
 .donuts{
   display:grid;
@@ -715,10 +748,3 @@ tbody tr:hover{background:var(--glass)}
   align-items:center;
 }
 
-.right-aligned-container {
-  max-width: 1200px;
-  margin: 6px 8px 6px auto; /* This aligns the container to the right */
-  padding: 8px;
-  display: grid;
-  gap: 16px;
-}
