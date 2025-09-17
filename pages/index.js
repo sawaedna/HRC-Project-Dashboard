@@ -14,15 +14,12 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <Script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js" strategy="beforeInteractive" />
-<<<<<<< HEAD
       <Script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" strategy="beforeInteractive" />
-=======
       <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" strategy="beforeInteractive" />
 
       {/* إضافة المكتبة الجديدة لمخطط Sunburst */}
       <Script src="https://unpkg.com/sunburst-chart" strategy="beforeInteractive" />
       
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
       <Script src="/js/app.js" strategy="afterInteractive" />
 
       <div className="container">
