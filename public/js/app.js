@@ -1,7 +1,14 @@
 (function () {
+  console.log("app.js script loaded and executing.");
   if (typeof window === "undefined") return;
 
   // Import and register ChartDataLabels plugin
+  if (typeof Chart !== 'undefined' && typeof ChartDataLabels === 'undefined') {
+    // Assuming ChartDataLabels is loaded globally by a script tag, if not, it needs to be imported.
+    // For now, we'll assume it's available or will be loaded.
+    // If not, a script tag for 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0' might be needed in _document.js
+    console.warn("ChartDataLabels plugin not found. Please ensure it's loaded.");
+  }
   if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
     Chart.register(ChartDataLabels);
   }
@@ -10,13 +17,11 @@
   const state = {
     raw: { detailed: [], summary: [], geo: [] },
     filtered: { detailed: [], summary: [], geo: [] },
-    charts: { main: null, donuts: [], gauge: null, sunburst: null, overallActual: null },
-    gauges: { planned: null, actual: null },
+    charts: { main: null, donuts: [], gauge: null },
     map: { instance: null, markers: [], originalView: null },
     selectedSite: null,
     selectedPhase: null,
     selectedItem: null,
-    selectedStage: null,
     lastUpdated: null,
     refreshIntervalId: null,
   };
@@ -81,27 +86,28 @@
     if (t === "light") document.body.classList.add("light");
     else document.body.classList.remove("light");
   }
-  if (themeBtn) {
-    themeBtn.addEventListener("click", () => {
-      const now = document.body.classList.toggle("light") ? "light" : "dark";
-      localStorage.setItem("theme", now);
-      renderPerformanceCharts();
-    });
-  }
+  themeBtn.addEventListener("click", () => {
+    const now = document.body.classList.toggle("light") ? "light" : "dark";
+    localStorage.setItem("theme", now);
+    // Re-render the gauge chart to update its colors
+    renderPerformanceCharts();
+  });
   applyTheme();
 
   // ======== Loader ========
   const loader = document.getElementById("loader");
   function showLoader() {
-    if (loader) loader.style.display = "flex";
+    loader.style.display = "flex";
   }
   function hideLoader() {
-    if (loader) loader.style.display = "none";
+    loader.style.display = "none";
   }
 
   // ======== جلب البيانات من الـ API ========
   async function fetchSheetsOnce() {
+    console.log("Fetching sheets data...");
     try {
+      // إضافة timestamp لمنع التخزين المؤقت للمتصفح
       const res = await fetch(`/api/sheets?t=${Date.now()}`);
       const j = await res.json();
       if (j.error) {
@@ -122,31 +128,52 @@
       return;
     }
 
+    console.log("Hydrating data:", data);
+    
+    // Clear existing state
     state.raw = { detailed: [], summary: [], geo: [] };
     state.filtered = { detailed: [], summary: [], geo: [] };
     
+    // Reset filters
     state.selectedSite = null;
     state.selectedPhase = null;
     state.selectedItem = null;
 
+    // Update data
     const detailed = (data.detailed || data.data?.detailed || [])
-      .filter(row => row["الموقع"] && String(row["الموقع"]).trim() !== "")
+      .filter(row => {
+        // تجاهل الصفوف التي لا تحتوي على موقع
+        return row["الموقع"] && String(row["الموقع"]).trim() !== "";
+      })
       .map((r) => ({ ...r }));
 
     const summary = (data.summary || data.data?.summary || [])
-      .filter(row => row["الموقع"] && String(row["الموقع"]).trim() !== "")
+      .filter(row => {
+        // تجاهل الصفوف التي لا تحتوي على موقع
+        return row["الموقع"] && String(row["الموقع"]).trim() !== "";
+      })
       .map((r) => ({ ...r }));
 
     const geo = (data.geo || data.data?.geo || [])
-      .filter(row => row["الموقع"] && String(row["الموقع"]).trim() !== "")
+      .filter(row => {
+        // تجاهل الصفوف التي لا تحتوي على موقع
+        return row["الموقع"] && String(row["الموقع"]).trim() !== "";
+      })
       .map((r) => ({ ...r }));
 
     state.raw = { detailed, summary, geo };
     
+    console.log("Filtered Data:", {
+      detailedCount: detailed.length,
+      summaryCount: summary.length,
+      geoCount: geo.length
+    });
+
     buildFilters();
     applyFilters();
     renderAll();
 
+    // تحديث آخر تحديث للبيانات
     const lastUpdateText = document.getElementById("lastUpdate");
     if (lastUpdateText) {
       lastUpdateText.textContent = "آخر تحديث: " + formatDateTime(new Date());
@@ -154,69 +181,64 @@
   }
 
   function buildFilters() {
-    const sites = [...new Set(state.raw.detailed.map((r) => r["الموقع"] || "").filter(Boolean))].sort();
-    const phases = [...new Set(state.raw.detailed.map((r) => r["المرحلة"] || "").filter(Boolean))].sort();
-    const items = [...new Set(state.raw.detailed.map((r) => r["البند الرئيسي"] || "").filter(Boolean))].sort();
+    const sites = [
+      ...new Set(state.raw.detailed.map((r) => r["الموقع"] || "").filter(Boolean)),
+    ].sort();
+    const phases = [
+      ...new Set(
+        state.raw.detailed.map((r) => r["المرحلة"] || "").filter(Boolean)
+      ),
+    ].sort();
+    const items = [
+      ...new Set(
+        state.raw.detailed.map((r) => r["البند الرئيسي"] || "").filter(Boolean)
+      ),
+    ].sort();
 
     const siteFilter = document.getElementById("siteFilter");
-    if (siteFilter) {
-      siteFilter.innerHTML =
-        '<option value="">كل المواقع</option>' +
-        sites.map((s) => `<option value="${s}">${s}</option>`).join("");
-    }
+    siteFilter.innerHTML =
+      '<option value="">كل المواقع</option>' +
+      sites.map((s) => `<option value="${s}">${s}</option>`).join("");
 
     const phaseFilter = document.getElementById("phaseFilter");
-    if (phaseFilter) {
-      phaseFilter.innerHTML =
-        '<option value="">كل المراحل</option>' +
-        phases.map((p) => `<option value="${p}">${p}</option>`).join("");
-    }
+    phaseFilter.innerHTML =
+      '<option value="">كل المراحل</option>' +
+      phases.map((p) => `<option value="${p}">${p}</option>`).join("");
 
     const itemFilter = document.getElementById("itemFilter");
-    if (itemFilter) {
-      itemFilter.innerHTML =
-        '<option value="">كل البنود الرئيسية</option>' +
-        items.map((i) => `<option value="${i}">${i}</option>`).join("");
-    }
-    
+    itemFilter.innerHTML =
+      '<option value="">كل البنود الرئيسية</option>' +
+      items.map((i) => `<option value="${i}">${i}</option>`).join("");
+
     const chartSiteFilter = document.getElementById("chartSiteFilter");
-    if (chartSiteFilter) {
-      chartSiteFilter.innerHTML =
-        '<option value="">كل المواقع</option>' +
-        sites.map((s) => `<option value="${s}">${s}</option>`).join("");
-    }
+    chartSiteFilter.innerHTML =
+      '<option value="">كل المواقع</option>' +
+      sites.map((s) => `<option value="${s}">${s}</option>`).join("");
 
     const mapSiteFilter = document.getElementById("mapSiteFilter");
-    if (mapSiteFilter) {
-      mapSiteFilter.innerHTML =
-        '<option value="">كل المواقع</option>' +
-        sites.map((s) => `<option value="${s}">${s}</option>`).join("");
-    }
+    mapSiteFilter.innerHTML =
+      '<option value="">كل المواقع</option>' +
+      sites.map((s) => `<option value="${s}">${s}</option>`).join("");
 
     const tableSiteFilter = document.getElementById("tableSiteFilter");
-    if (tableSiteFilter) {
-      tableSiteFilter.innerHTML =
-        '<option value="">كل المواقع</option>' +
-        sites.map((s) => `<option value="${s}">${s}</option>`).join("");
-    }
+    tableSiteFilter.innerHTML =
+      '<option value="">كل المواقع</option>' +
+      sites.map((s) => `<option value="${s}">${s}</option>`).join("");
 
     const tablePhaseFilter = document.getElementById("tablePhaseFilter");
-    if (tablePhaseFilter) {
-      tablePhaseFilter.innerHTML =
-        '<option value="">كل المراحل</option>' +
-        phases.map((p) => `<option value="${p}">${p}</option>`).join("");
-    }
+    tablePhaseFilter.innerHTML =
+      '<option value="">كل المراحل</option>' +
+      phases.map((p) => `<option value="${p}">${p}</option>`).join("");
 
     const tableItemFilter = document.getElementById("tableItemFilter");
-    if (tableItemFilter) {
-      tableItemFilter.innerHTML =
-        '<option value="">كل البنود</option>' +
-        items.map((i) => `<option value="${i}">${i}</option>`).join("");
-    }
+    tableItemFilter.innerHTML =
+      '<option value="">كل البنود</option>' +
+      items.map((i) => `<option value="${i}">${i}</option>`).join("");
   }
 
   // ======== فلترة مترابطة ========
   function applyFilters(source = null) {
+    // Get values from all filter groups
     const mainFilters = {
       site: document.getElementById("siteFilter")?.value ?? "",
       phase: document.getElementById("phaseFilter")?.value ?? "",
@@ -229,6 +251,7 @@
       item: document.getElementById("tableItemFilter")?.value ?? ""
     };
     
+    // Update state based on the source of the filter change
     if (source === 'table') {
       state.selectedSite = tableFilters.site || null;
       state.selectedPhase = tableFilters.phase || null;
@@ -239,6 +262,7 @@
       state.selectedItem = mainFilters.item || null;
     }
     
+    // Filter the data
     state.filtered.detailed = state.raw.detailed.filter((r) => {
       const siteMatch = !state.selectedSite || String(r["الموقع"] || "") === String(state.selectedSite);
       const phaseMatch = !state.selectedPhase || String(r["المرحلة"] || "") === String(state.selectedPhase);
@@ -249,27 +273,33 @@
     state.filtered.summary = aggregateSummaryFromDetails(true);
     state.filtered.geo = state.filtered.summary;
 
+    // Update clear buttons visibility
     const mainClearBtn = document.getElementById("clearFilter");
     const tableClearBtn = document.getElementById("tableDetailsClearFilter");
+    
     const performanceClearBtn = document.getElementById("performanceClearFilter");
 
     if (state.selectedSite || state.selectedPhase || state.selectedItem) {
-      if (mainClearBtn) mainClearBtn.style.display = "inline-block";
-      if (tableClearBtn) tableClearBtn.style.display = "inline-block";
-      if (performanceClearBtn) performanceClearBtn.style.display = "inline-block";
+      mainClearBtn.style.display = "inline-block";
+      tableClearBtn.style.display = "inline-block";
+      performanceClearBtn.style.display = "inline-block";
     } else {
-      if (mainClearBtn) mainClearBtn.style.display = "none";
-      if (tableClearBtn) tableClearBtn.style.display = "none";
-      if (performanceClearBtn) performanceClearBtn.style.display = "none";
+      mainClearBtn.style.display = "none";
+      tableClearBtn.style.display = "none";
+      performanceClearBtn.style.display = "none";
     }
+
+    // Sync all filter dropdowns
     syncFilters();
   }
 
   function syncFilters() {
+    // Create arrays of filter elements to sync
     const siteFilters = ["siteFilter", "chartSiteFilter", "mapSiteFilter", "tableSiteFilter"];
     const phaseFilters = ["phaseFilter", "tablePhaseFilter"];
     const itemFilters = ["itemFilter", "tableItemFilter"];
 
+    // Sync site filters
     siteFilters.forEach(id => {
       const element = document.getElementById(id);
       if (element) {
@@ -277,6 +307,7 @@
       }
     });
 
+    // Sync phase filters
     phaseFilters.forEach(id => {
       const element = document.getElementById(id);
       if (element) {
@@ -284,6 +315,7 @@
       }
     });
 
+    // Sync item filters
     itemFilters.forEach(id => {
       const element = document.getElementById(id);
       if (element) {
@@ -326,7 +358,6 @@
   // ======== رندر KPIs ========
   function renderKPIs() {
     const container = document.getElementById("kpiArea");
-    if (!container) return;
     const summary = state.filtered.summary.length
       ? state.filtered.summary
       : aggregateSummaryFromDetails(true);
@@ -337,17 +368,18 @@
     ).size;
     const avgPlan = avg(
       summary.map(
-        (s) => normalizePercent(s["متوسط النسبة المخططة"] || s["النسبة المخططة (%)"] || 0)
+        (s) =>
+          normalizePercent(s["متوسط النسبة المخططة"] || s["النسبة المخططة (%)"] || 0)
       )
     );
     const avgActual = avg(
       summary.map(
-        (s) => normalizePercent(s["متوسط النسبة الفعلية"] || s["النسبة الفعلية (%)"] || 0)
+        (s) =>
+          normalizePercent(s["متوسط النسبة الفعلية"] || s["النسبة الفعلية (%)"] || 0)
       )
     );
     const avgDelta = avgActual - avgPlan;
     const pd = computeProjectDates();
-    const itemsCount = state.filtered.detailed.length;
 
     container.innerHTML = `
       <div class="card kpi"><h3>عدد المواقع</h3><div class="value">${sitesCount}</div></div>
@@ -443,7 +475,7 @@
         responsive: true,
         plugins: {
           datalabels: {
-            display: false
+            display: false // Remove fixed labels
           }
         },
         onClick: (evt, elements) => {
@@ -472,16 +504,21 @@
   // ======== رندر Gauge Chart للموقع الواحد أو Donuts للكل ========
   function renderPerformanceCharts() {
     if (typeof Chart === "undefined") return;
+
     const donutArea = document.getElementById("donutArea");
     const gaugeArea = document.getElementById("gaugeArea");
     const title = document.getElementById("performanceTitle");
 
     state.charts.donuts.forEach((c) => {
-      try { c.destroy(); } catch (e) {}
+      try {
+        c.destroy();
+      } catch (e) {}
     });
     state.charts.donuts = [];
     if (state.charts.gauge) {
-      try { state.charts.gauge.destroy(); } catch (e) {}
+      try {
+        state.charts.gauge.destroy();
+      } catch (e) {}
       state.charts.gauge = null;
     }
 
@@ -496,9 +533,12 @@
 
       const s = summary[0];
       const planVal =
-        normalizePercent(s["متوسط النسبة المخططة"] || s["النسبة المخططة (%)"] || 0) * 100;
+        normalizePercent(s["متوسط النسبة المخططة"] || s["النسبة المخططة (%)"] || 0) *
+        100;
       const actVal =
-        normalizePercent(s["متوسط النسبة الفعلية"] || s["النسبة الفعلية (%)"] || 0) * 100;
+        normalizePercent(
+          s["متوسط النسبة الفعلية"] || s["النسبة الفعلية (%)"] || 0
+        ) * 100;
       const targetVal = 100;
       const deviation = (actVal - planVal).toFixed(1);
       const deviationColor = deviation >= 0 ? "var(--success)" : "var(--danger)";
@@ -589,9 +629,13 @@
 
       summary.forEach((s) => {
         const planVal =
-          normalizePercent(s["متوسط النسبة المخططة"] || s["النسبة المخططة (%)"] || 0) * 100;
+          normalizePercent(
+            s["متوسط النسبة المخططة"] || s["النسبة المخططة (%)"] || 0
+          ) * 100;
         const actVal =
-          normalizePercent(s["متوسط النسبة الفعلية"] || s["النسبة الفعلية (%)"] || 0) * 100;
+          normalizePercent(
+            s["متوسط النسبة الفعلية"] || s["النسبة الفعلية (%)"] || 0
+          ) * 100;
         const deviation = (actVal - planVal).toFixed(1);
         const deviationColor = deviation >= 0 ? "var(--success)" : "var(--danger)";
 
@@ -664,22 +708,59 @@
     if (typeof L === "undefined") return;
     const geoData = state.filtered.geo;
 
-    try { state.map.instance?.remove(); } catch (e) {}
+    try {
+      state.map.instance?.remove();
+    } catch (e) {
+      /* ignore */
+    }
 
     const mapElement = document.getElementById("map");
     if (!mapElement) return;
 
-    state.map.instance = L.map("map").setView([24.7136, 46.6753], 6);
+    state.map.instance = L.map("map", {
+      // تحسين إعدادات الخريطة لتقليل طلبات tiles غير الضرورية
+      preferCanvas: true,
+      zoomControl: true,
+      attributionControl: true,
+      fadeAnimation: true,
+      zoomAnimation: true,
+      markerZoomAnimation: true,
+      maxBoundsViscosity: 0.5,
+      // تحديد حدود الخريطة للمملكة العربية السعودية
+      maxBounds: [[15, 30], [35, 60]],
+      // تحسين الأداء
+      renderer: L.canvas({ padding: 0.5 })
+    }).setView([24.7136, 46.6753], 6);
     state.map.originalView = {
       center: state.map.instance.getCenter(),
       zoom: state.map.instance.getZoom(),
     };
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(state.map.instance);
+    // إضافة معالجة أخطاء وتحسينات لتحميل tiles الخريطة
+    const tileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 18,
+      minZoom: 3,
+      errorTileUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiPtiu2LHZitio2Kkg2LrZitixINmF2KrYp9it2Kk8L3RleHQ+PC9zdmc+',
+      retryDelay: 1000,
+      retryLimit: 3,
+      timeout: 10000
+    });
 
-    state.map.markers.forEach((m) => { try { m.remove(); } catch (e) {} });
+    // إضافة معالج أحداث للأخطاء
+    tileLayer.on('tileerror', function(error) {
+      console.warn('خطأ في تحميل خريطة:', error);
+      // لا نعرض تنبيه للمستخدم لتجنب الإزعاج
+    });
+
+    tileLayer.addTo(state.map.instance);
+
+    state.map.markers.forEach((m) => {
+      try {
+        m.remove();
+      } catch (e) {}
+    });
     state.map.markers = [];
 
     geoData.forEach((g) => {
@@ -704,10 +785,11 @@
       const group = new L.featureGroup(state.map.markers);
       state.map.instance.fitBounds(group.getBounds(), { 
         padding: [50, 50],
-        maxZoom: 8
+        maxZoom: 8 // Limit maximum zoom level
       });
     }
     
+    // Make map container responsive
     const resizeMap = () => {
       state.map.instance.invalidateSize();
     };
@@ -724,55 +806,53 @@
     const detailedData = state.filtered.detailed;
     const headers = Object.keys(detailedData[0] || {});
 
-    if (tableHead) {
-      tableHead.innerHTML = `<tr>${headers.map((h) => `<th data-sort="${h}">${h}</th>`).join("")}</tr>`;
-    }
-    if (tableBody) {
-      tableBody.innerHTML = detailedData.map((row) => `<tr>${headers.map((h) => `<td>${row[h]}</td>`).join("")}</tr>`).join("");
-    }
-    if (tableFooter) {
-      tableFooter.textContent = `عرض ${detailedData.length} من ${state.raw.detailed.length} سجل`;
-    }
+    tableHead.innerHTML = `<tr>${headers
+      .map((h) => `<th data-sort="${h}">${h}</th>`)
+      .join("")}</tr>`;
+    tableBody.innerHTML = detailedData
+      .map((row) => `<tr>${headers.map((h) => `<td>${row[h]}</td>`).join("")}</tr>`)
+      .join("");
+    tableFooter.textContent = `عرض ${detailedData.length} من ${state.raw.detailed.length} سجل`;
 
-    if (tableHead) {
-      tableHead.querySelectorAll("th").forEach((th) => {
-        th.addEventListener("click", () => {
-          const key = th.dataset.sort;
-          const isAsc = th.classList.contains("asc");
-          tableHead.querySelectorAll("th").forEach((otherTh) => {
-            if (otherTh !== th) {
-              otherTh.classList.remove("asc", "desc");
-            }
-          });
-          state.filtered.detailed.sort((a, b) => {
-            const valA = a[key];
-            const valB = b[key];
-            if (typeof valA === "string" && typeof valB === "string") {
-              return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            }
-            if (typeof valA === "number" && typeof valB === "number") {
-              return isAsc ? valA - valB : valB - valA;
-            }
-            return 0;
-          });
-          th.classList.toggle("asc", !isAsc);
-          th.classList.toggle("desc", isAsc);
-          renderTable();
+    tableHead.querySelectorAll("th").forEach((th) => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        const isAsc = th.classList.contains("asc");
+
+        tableHead.querySelectorAll("th").forEach((otherTh) => {
+          if (otherTh !== th) {
+            otherTh.classList.remove("asc", "desc");
+          }
         });
-      });
-    }
 
-    if (searchInput) {
-      searchInput.addEventListener("input", () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        state.filtered.detailed = state.raw.detailed.filter((row) =>
-          Object.values(row).some((val) =>
-            String(val).toLowerCase().includes(searchTerm)
-          )
-        );
+        state.filtered.detailed.sort((a, b) => {
+          const valA = a[key];
+          const valB = b[key];
+
+          if (typeof valA === "string" && typeof valB === "string") {
+            return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          }
+          if (typeof valA === "number" && typeof valB === "number") {
+            return isAsc ? valA - valB : valB - valA;
+          }
+          return 0;
+        });
+
+        th.classList.toggle("asc", !isAsc);
+        th.classList.toggle("desc", isAsc);
         renderTable();
       });
-    }
+    });
+
+    searchInput.addEventListener("input", () => {
+      const searchTerm = searchInput.value.toLowerCase();
+      state.filtered.detailed = state.raw.detailed.filter((row) =>
+        Object.values(row).some((val) =>
+          String(val).toLowerCase().includes(searchTerm)
+        )
+      );
+      renderTable();
+    });
   }
 
   // ======== رندر الكل ========
@@ -788,12 +868,10 @@
   async function fetchDataAndHydrate() {
     const data = await fetchSheetsOnce();
     if (data) {
-      state.projectDates = data.projectDates;
       hydrate(data);
-      state.lastUpdated = new Date();
-      const lastUpdateElement = document.getElementById("lastUpdate");
-      if (lastUpdateElement) {
-        lastUpdateElement.textContent = `آخر تحديث: ${formatDateTime(state.lastUpdated)}`;
+      const lastUpdateText = document.getElementById("lastUpdate");
+      if (lastUpdateText) {
+        lastUpdateText.textContent = "آخر تحديث: " + formatDateTime(new Date());
       }
     }
     return data;
@@ -801,6 +879,7 @@
 
   // ======== الأحداث ========
   function initializeDashboard() {
+    console.log("Initializing dashboard...");
     showLoader();
     fetchDataAndHydrate().then(() => {
       hideLoader();
@@ -811,10 +890,10 @@
         document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
         this.classList.add("active");
         const view = this.dataset.tab;
-        const viewSummary = document.getElementById("viewSummary");
-        const viewDetails = document.getElementById("viewDetails");
-        if (viewSummary) viewSummary.style.display = view === "summary" ? "block" : "none";
-        if (viewDetails) viewDetails.style.display = view === "details" ? "block" : "none";
+        document.getElementById("viewSummary").style.display =
+          view === "summary" ? "block" : "none";
+        document.getElementById("viewDetails").style.display =
+          view === "details" ? "block" : "none";
         if (view === "summary") {
           renderCharts();
           renderPerformanceCharts();
@@ -823,36 +902,78 @@
       });
     });
 
-    const siteFilter = document.getElementById("siteFilter");
-    if (siteFilter) {
-      siteFilter.addEventListener("change", (e) => {
-        state.selectedSite = e.target.value;
-        state.selectedPhase = null;
-        state.selectedItem = null;
-        applyFilters();
-        renderAll();
-      });
-    }
-
-    const phaseFilter = document.getElementById("phaseFilter");
-    if (phaseFilter) {
-      phaseFilter.addEventListener("change", (e) => {
-        state.selectedPhase = e.target.value;
-        applyFilters();
-        renderAll();
-      });
-    }
-
-    const itemFilter = document.getElementById("itemFilter");
-    if (itemFilter) {
-      itemFilter.addEventListener("change", (e) => {
-        state.selectedItem = e.target.value;
-        applyFilters();
-        renderAll();
-      });
-    }
-
+    document.getElementById("siteFilter").addEventListener("change", (e) => {
+      state.selectedSite = e.target.value;
+      state.selectedPhase = null;
+      state.selectedItem = null;
+      applyFilters();
+      renderAll();
+    });
+    document.getElementById("phaseFilter").addEventListener("change", (e) => {
+      state.selectedPhase = e.target.value;
+      applyFilters();
+      renderAll();
+    });
+    document.getElementById("itemFilter").addEventListener("change", (e) => {
+      state.selectedItem = e.target.value;
+      applyFilters();
+      renderAll();
+    });
     function clearAllFilters() {
+      // Clear all state filters
+      state.selectedSite = null;
+      state.selectedPhase = null;
+      state.selectedItem = null;
+      
+      // Clear all filter dropdowns
+      ["siteFilter", "phaseFilter", "itemFilter", 
+       "chartSiteFilter", "mapSiteFilter",
+       "tableSiteFilter", "tablePhaseFilter", "tableItemFilter"].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.value = "";
+      });
+      
+      // Reset filters and render
+      applyFilters();
+      renderAll();
+      
+      // Reset map view
+      if (state.map.instance && state.map.originalView) {
+        state.map.instance.setView(state.map.originalView.center, state.map.originalView.zoom);
+      }
+    }
+
+    document.getElementById("clearFilter").addEventListener("click", clearAllFilters);
+    document.getElementById("tableDetailsClearFilter").addEventListener("click", clearAllFilters);
+    document.getElementById("performanceClearFilter").addEventListener("click", clearAllFilters);
+
+    document.getElementById("chartSiteFilter").addEventListener("change", (e) => {
+      state.selectedSite = e.target.value;
+      applyFilters();
+      renderAll();
+    });
+
+    document.getElementById("mapSiteFilter").addEventListener("change", (e) => {
+      state.selectedSite = e.target.value;
+      applyFilters();
+      renderAll();
+    });
+
+    document.getElementById("tableSiteFilter").addEventListener("change", (e) => {
+      applyFilters('table');
+      renderAll();
+    });
+    document.getElementById("tablePhaseFilter").addEventListener("change", (e) => {
+      applyFilters('table');
+      renderAll();
+    });
+    document.getElementById("tableItemFilter").addEventListener("change", (e) => {
+      applyFilters('table');
+      renderAll();
+    });
+
+    // Table clear filter button
+    document.getElementById("tableDetailsClearFilter").addEventListener("click", () => {
       state.selectedSite = null;
       state.selectedPhase = null;
       state.selectedItem = null;
@@ -870,69 +991,18 @@
       if (state.map.instance && state.map.originalView) {
         state.map.instance.setView(state.map.originalView.center, state.map.originalView.zoom);
       }
-    }
+    });
 
-    const clearFilterBtn = document.getElementById("clearFilter");
-    if (clearFilterBtn) clearFilterBtn.addEventListener("click", clearAllFilters);
-    
-    const tableDetailsClearFilterBtn = document.getElementById("tableDetailsClearFilter");
-    if (tableDetailsClearFilterBtn) tableDetailsClearFilterBtn.addEventListener("click", clearAllFilters);
-    
-    const performanceClearFilterBtn = document.getElementById("performanceClearFilter");
-    if (performanceClearFilterBtn) performanceClearFilterBtn.addEventListener("click", clearAllFilters);
 
-    const chartSiteFilter = document.getElementById("chartSiteFilter");
-    if (chartSiteFilter) {
-      chartSiteFilter.addEventListener("change", (e) => {
-        state.selectedSite = e.target.value;
-        applyFilters();
-        renderAll();
-      });
-    }
 
-    const mapSiteFilter = document.getElementById("mapSiteFilter");
-    if (mapSiteFilter) {
-      mapSiteFilter.addEventListener("change", (e) => {
-        state.selectedSite = e.target.value;
-        applyFilters();
-        renderAll();
-      });
-    }
-
-    const tableSiteFilter = document.getElementById("tableSiteFilter");
-    if (tableSiteFilter) {
-      tableSiteFilter.addEventListener("change", (e) => {
-        applyFilters('table');
-        renderAll();
-      });
-    }
-
-    const tablePhaseFilter = document.getElementById("tablePhaseFilter");
-    if (tablePhaseFilter) {
-      tablePhaseFilter.addEventListener("change", (e) => {
-        applyFilters('table');
-        renderAll();
-      });
-    }
-
-    const tableItemFilter = document.getElementById("tableItemFilter");
-    if (tableItemFilter) {
-      tableItemFilter.addEventListener("change", (e) => {
-        applyFilters('table');
-        renderAll();
-      });
-    }
-
-    const refreshBtn = document.getElementById("refreshBtn");
-    if (refreshBtn) {
-      refreshBtn.addEventListener("click", async () => {
-        showLoader();
-        await fetchDataAndHydrate();
-        hideLoader();
-      });
-    }
+    document.getElementById("refreshBtn").addEventListener("click", async () => {
+      showLoader();
+      await fetchDataAndHydrate();
+      hideLoader();
+    });
 
     state.refreshIntervalId = setInterval(async () => {
+      console.log("Auto-refreshing data...");
       await fetchDataAndHydrate();
     }, 10800000);
   }
@@ -941,5 +1011,17 @@
     document.addEventListener('DOMContentLoaded', initializeDashboard);
   } else {
     initializeDashboard();
+  }
+
+  async function fetchDataAndHydrate() {
+    const data = await fetchSheetsOnce();
+    if (data) {
+      state.projectDates = data.projectDates;
+      hydrate(data);
+      state.lastUpdated = new Date();
+      document.getElementById(
+        "lastUpdate"
+      ).textContent = `آخر تحديث: ${formatDateTime(state.lastUpdated)}`;
+    }
   }
 })();

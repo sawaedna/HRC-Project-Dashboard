@@ -6,9 +6,10 @@ export default function Document() {
     <Html lang="ar" dir="rtl">
       <Head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/images/favicon.png" />
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap"
           rel="stylesheet"
@@ -21,7 +22,6 @@ export default function Document() {
           href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css"
           rel="stylesheet"
         />
-        <link href="/styles/dashboard.css" rel="stylesheet" />
       </Head>
       <body className="rtl">
         <Main />
