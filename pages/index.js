@@ -42,6 +42,7 @@ export default function Home() {
 
       <div className="right-aligned-content">
         <div id="viewSummary">
+
           <div className="filters" style={{ marginTop: '12px' }}>
             <div className="filter-group">
               <select id="siteFilter" className="select"><option value="">كل المواقع</option></select>
@@ -50,9 +51,11 @@ export default function Home() {
               <button id="clearFilter" className="btn clear-btn" style={{ display: 'none', marginRight: '8px', padding: '6px 10px', background: 'var(--danger)', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer' }}>🔄 إزالة الفلتر</button>
             </div>
           </div>
+
           <div id="kpiArea" className="grid" style={{ marginBottom: '12px' }}></div>
+
           <div className="grid" style={{ marginBottom: '12px' }}>
-            <div className="panel card" style={{ position: 'relative', width: '450px', height: '350px' }}>
+            <div className="panel card" style={{ position: 'relative' }}>
               <div className="panel-header">
                 <h3>مخطط/فعلي</h3>
                 <div className="chart-filter">
@@ -61,17 +64,16 @@ export default function Home() {
               </div>
               <canvas id="chartPlanActual" style={{ height: '320px' }}></canvas>
             </div>
-            <div className="panel card" style={{ position: 'relative', width: '450px', height: '350px', padding: '10px' }}>
-              <div className="map-body">
-                <div className="panel-header">
-                  <h3>المواقع</h3>
-                  <div className="map-filter">
-                    <select id="mapSiteFilter" className="select" style={{ fontSize: '12px', padding: '4px 6px' }}><option value="">كل المواقع</option></select>
-                  </div>
+            <div className="panel card" style={{ position: 'relative' }}>
+              <div className="panel-header">
+                <h3>المواقع</h3>
+                <div className="map-filter">
+                  <select id="mapSiteFilter" className="select" style={{ fontSize: '12px', padding: '4px 6px' }}><option value="">كل المواقع</option></select>
                 </div>
-                <div id="map" style={{ borderRadius: '8px' }}></div>
               </div>
+              <div id="map" style={{ height: '320px', borderRadius: '8px' }}></div>
             </div>
+          </div>
 
           <div className="card full">
             <div className="chart-header">

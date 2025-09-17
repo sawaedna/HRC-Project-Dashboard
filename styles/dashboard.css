@@ -154,19 +154,6 @@ body.light{
   background:var(--card);
 }
 
-/* New class for map content */
-.map-body {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.map-body > #map {
-  flex-grow: 1;
-  margin: 0;
-}
-
 /* Improve map popup styles */
 .leaflet-popup-content-wrapper {
   background:var(--card);
@@ -747,4 +734,3 @@ tbody tr:hover{background:var(--glass)}
   gap:6px;
   align-items:center;
 }
-
