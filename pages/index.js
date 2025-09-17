@@ -38,7 +38,9 @@ export default function Home() {
             <button id="themeBtn" className="btn">🌓</button>
           </div>
         </div>
+      </div>
 
+      <div className="right-aligned-content">
         <div id="viewSummary">
 
           <div className="filters" style={{ marginTop: '12px' }}>
