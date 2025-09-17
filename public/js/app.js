@@ -2,10 +2,6 @@
   console.log("app.js script loaded and executing.");
   if (typeof window === "undefined") return;
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
   // Import and register ChartDataLabels plugin
   if (typeof Chart !== 'undefined' && typeof ChartDataLabels === 'undefined') {
     // Assuming ChartDataLabels is loaded globally by a script tag, if not, it needs to be imported.
@@ -16,9 +12,7 @@
   if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
     Chart.register(ChartDataLabels);
   }
-<<<<<<< HEAD
-=======
-=======
+
   // ======== عناصر الجذر ========
   const root = document.getElementById('app');
   root.innerHTML = `
@@ -114,8 +108,7 @@
 
   <div id="loader" class="loader" style="display:none"><div class="spinner"></div></div>
   `;
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+
 
   // ======== الحالة العامة ========
   const state = {
@@ -125,17 +118,16 @@
     gauges: { planned: null, actual: null },
     map: { instance: null, markers: [], originalView: null },
     selectedSite: null,
-<<<<<<< HEAD
+
     selectedPhase: null,
     selectedItem: null,
 =======
-<<<<<<< HEAD
+
     selectedPhase: null,
     selectedItem: null,
 =======
     selectedStage: null,
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+
     lastUpdated: null,
     refreshIntervalId: null,
   };
@@ -287,17 +279,12 @@
     applyFilters();
     renderAll();
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+
     // تحديث آخر تحديث للبيانات
     const lastUpdateText = document.getElementById("lastUpdate");
     if (lastUpdateText) {
       lastUpdateText.textContent = "آخر تحديث: " + formatDateTime(new Date());
-<<<<<<< HEAD
-=======
-=======
+
   function buildFilters() {
     const sel = document.getElementById('siteFilter');
     const sites = [...new Set(state.raw.detailed.map(r => r['الموقع'] || r['SiteKey'] || '').filter(Boolean))].sort();
@@ -320,8 +307,7 @@
       clearBtn.style.display = 'inline-block';
     } else {
       clearBtn.style.display = 'none';
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+
     }
   }
 
@@ -502,10 +488,7 @@
 
   // ======== رندر KPIs ========
   function renderKPIs() {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+
     const container = document.getElementById("kpiArea");
     const summary = state.filtered.summary.length
       ? state.filtered.summary
@@ -536,18 +519,14 @@
     const sitesCount = new Set(state.filtered.detailed.map(r => r['الموقع'] || r['SiteKey'])).size;
     const avgPlan = avg(summary.map(s => normalizePercent(s['متوسط النسبة المخططة'] || s['النسبة المخططة (%)'] || 0)));
     const avgActual = avg(summary.map(s => normalizePercent(s['متوسط النسبة الفعلية'] || s['النسبة الفعلية (%)'] || 0)));
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+
     const avgDelta = avgActual - avgPlan;
     const pd = computeProjectDates();
     const itemsCount = state.filtered.detailed.length;
 
     container.innerHTML = `
       <div class="card kpi"><h3>عدد المواقع</h3><div class="value">${sitesCount}</div></div>
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+
       <div class="card kpi"><h3>متوسط المخطط</h3><div class="value">${pct(
         avgPlan
       )}</div></div>
@@ -576,8 +555,6 @@
       <div class="card kpi"><h3>الأيام المنقضية</h3><div class="value">${pd ? pd.elapsed : '—'}</div></div>
       <div class="card kpi"><h3>الأيام المتبقية</h3><div class="value">${pd ? pd.remaining : '—'}</div></div>
       <div class="card kpi"><h3>عدد البنود</h3><div class="value">${itemsCount}</div></div>
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
     `;
   }
 
@@ -660,15 +637,9 @@
           const idx = elements[0].index;
           const site = labels[idx];
           state.selectedSite = site;
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
           state.selectedStage = null;
           const sel = document.getElementById('siteFilter');
           if (sel) sel.value = site;
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
           applyFilters();
           renderAll();
           const summaryRow = summary.find((x) => x["الموقع"] === site);
@@ -684,8 +655,6 @@
         },
         scales: { y: { beginAtZero: true, max: 100 } },
       },
-<<<<<<< HEAD
-=======
     });
 
     // مخطط الإنجاز الفعلي لكل المواقع
@@ -729,7 +698,6 @@
                 }
             }
         }
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
     });
   }
 
@@ -923,18 +891,13 @@
               },
             },
             onClick: () => {
-<<<<<<< HEAD
               state.selectedSite = s["الموقع"];
-=======
-<<<<<<< HEAD
               state.selectedSite = s["الموقع"];
-=======
+
               state.selectedSite = s['الموقع'];
               state.selectedStage = null;
               const sel = document.getElementById('siteFilter');
               if (sel) sel.value = s['الموقع'];
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
               applyFilters();
               renderAll();
             },
@@ -946,7 +909,6 @@
     }
   }
 
-<<<<<<< HEAD
   // ======== رندر الخريطة ========
   function renderMap() {
     if (typeof L === "undefined") return;
@@ -958,10 +920,7 @@
       /* ignore */
     }
 
-=======
-<<<<<<< HEAD
   // ======== رندر الخريطة ========
-=======
   // ======== رندر المقاييس (Gauges) للنسب المئوية ========
   function renderGauges() {
     if (typeof Chart === 'undefined') return;
@@ -1057,7 +1016,6 @@
 
 
   // ======== رندر الخريطة (Leaflet) مع حل مشكلة الثبات ========
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
   function renderMap() {
     if (typeof L === "undefined") return;
     const geoData = state.filtered.geo;
@@ -1068,7 +1026,6 @@
       /* ignore */
     }
 
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
     const mapElement = document.getElementById("map");
     if (!mapElement) return;
 
@@ -1089,11 +1046,6 @@
       } catch (e) {}
     });
     state.map.markers = [];
-
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
     geoData.forEach((g) => {
       if (g.Latitude && g.Longitude) {
         const marker = L.marker([g.Latitude, g.Longitude])
@@ -1108,9 +1060,6 @@
             applyFilters();
             renderAll();
           });
-<<<<<<< HEAD
-=======
-=======
     const summary = state.filtered.summary.length ? state.filtered.summary : aggregateSummaryFromDetails(true);
     
     // إذا لم يكن هناك فلتر، ارجع للعرض الأصلي
@@ -1139,8 +1088,6 @@
           renderAll();
           try { state.map.instance.setView([lat, lng], 12, { animate: true }); } catch (e) {}
         });
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
         state.map.markers.push(marker);
       }
     });
@@ -1158,7 +1105,6 @@
       state.map.instance.invalidateSize();
     };
     window.addEventListener('resize', resizeMap);
-<<<<<<< HEAD
   }
 
   // ======== رندر الجدول ========
@@ -1221,8 +1167,7 @@
   }
 
   // ======== رندر الكل ========
-=======
-  }
+
 
   // ======== رندر الجدول ========
   function renderTable() {
@@ -1329,9 +1274,9 @@
         (document.getElementById('sunburstChartCanvas'));
   }
 
-<<<<<<< HEAD
+ 
   // ======== رندر الكل ========
-=======
+
   // ======== جدول التفاصيل ========
   let sort = { key: null, asc: true };
   function renderTable() {
@@ -1386,28 +1331,23 @@
   }
 
   // ======== تجميع كل الرندرات ========
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+
   function renderAll() {
     renderKPIs();
     renderCharts();
     renderPerformanceCharts();
-<<<<<<< HEAD
+    renderMap();
+    renderTable();
+  }
+  // ======== جلب وتهيئة البيانات ========
+  async function fetchDataAndHydrate() {
     renderMap();
     renderTable();
   }
 
   // ======== جلب وتهيئة البيانات ========
   async function fetchDataAndHydrate() {
-=======
-<<<<<<< HEAD
-    renderMap();
-    renderTable();
-  }
 
-  // ======== جلب وتهيئة البيانات ========
-  async function fetchDataAndHydrate() {
-=======
     renderSunburstChart();
     renderGauges();
     renderTable();
@@ -1457,8 +1397,6 @@
   // ======== تحميل وجدولة التحديث كل 60 ثانية ========
   async function loadAndSchedule() {
     showLoader();
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
     const data = await fetchSheetsOnce();
     if (data) {
       hydrate(data);
@@ -1536,10 +1474,7 @@
       }
     }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+
     document.getElementById("clearFilter").addEventListener("click", clearAllFilters);
     document.getElementById("tableDetailsClearFilter").addEventListener("click", clearAllFilters);
     document.getElementById("performanceClearFilter").addEventListener("click", clearAllFilters);
@@ -1621,10 +1556,5 @@
       ).textContent = `آخر تحديث: ${formatDateTime(state.lastUpdated)}`;
     }
   }
-<<<<<<< HEAD
-=======
-=======
-  // ======== نهاية الوحدة ========
->>>>>>> 39bf59edec4522958247546cf74ef4b7fcef43d1
->>>>>>> 2a7ac2b812315e4620e7c4c462d2c68eec29d467
+// ======== نهاية الوحدة ========
 })();
