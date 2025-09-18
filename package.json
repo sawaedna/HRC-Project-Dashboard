@@ -1,0 +1,19 @@
+{
+  "name": "hrc-dashboard-ar",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 6005",
+    "build": "next build",
+    "start": "next start -p 6005"
+  },
+  "dependencies": {
+    "dayjs": "1.11.11",
+    "googleapis": "131.0.0",
+    "next": "14.2.32",
+    "pg": "8.11.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "xlsx": "^0.18.5"
+  }
+}
