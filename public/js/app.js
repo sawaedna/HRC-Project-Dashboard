@@ -22,6 +22,7 @@
     selectedSite: null,
     selectedPhase: null,
     selectedItem: null,
+    projectDates: null,
     lastUpdated: null,
     refreshIntervalId: null,
   };
@@ -173,11 +174,26 @@
     applyFilters();
     renderAll();
 
-    // تحديث آخر تحديث للبيانات
+  }
+
+  // ======== جلب وتهيئة البيانات ========
+  async function fetchDataAndHydrate() {
+    const data = await fetchSheetsOnce();
+    if (!data) {
+      return null;
+    }
+
+    state.projectDates = data.projectDates ?? null;
+
+    hydrate(data);
+
+    state.lastUpdated = new Date();
     const lastUpdateText = document.getElementById("lastUpdate");
     if (lastUpdateText) {
-      lastUpdateText.textContent = "آخر تحديث: " + formatDateTime(new Date());
+      lastUpdateText.textContent = `آخر تحديث: ${formatDateTime(state.lastUpdated)}`;
     }
+
+    return data;
   }
 
   function buildFilters() {
@@ -864,26 +880,19 @@
     renderTable();
   }
 
-  // ======== جلب وتهيئة البيانات ========
-  async function fetchDataAndHydrate() {
-    const data = await fetchSheetsOnce();
-    if (data) {
-      hydrate(data);
-      const lastUpdateText = document.getElementById("lastUpdate");
-      if (lastUpdateText) {
-        lastUpdateText.textContent = "آخر تحديث: " + formatDateTime(new Date());
-      }
-    }
-    return data;
-  }
-
   // ======== الأحداث ========
   function initializeDashboard() {
     console.log("Initializing dashboard...");
     showLoader();
-    fetchDataAndHydrate().then(() => {
-      hideLoader();
-    });
+    fetchDataAndHydrate()
+      .then((data) => {
+        if (!data) {
+          console.warn("لم يتم تحميل البيانات الأولية.");
+        }
+      })
+      .finally(() => {
+        hideLoader();
+      });
 
     document.querySelectorAll(".tab").forEach((tab) => {
       tab.addEventListener("click", function () {
@@ -1006,14 +1015,23 @@
     if (elRefreshBtn) {
       elRefreshBtn.addEventListener("click", async () => {
         showLoader();
-        await fetchDataAndHydrate();
-        hideLoader();
+        try {
+          const data = await fetchDataAndHydrate();
+          if (!data) {
+            console.warn("تعذر تحديث البيانات عند التحديث اليدوي.");
+          }
+        } finally {
+          hideLoader();
+        }
       });
     }
 
     state.refreshIntervalId = setInterval(async () => {
       console.log("Auto-refreshing data...");
-      await fetchDataAndHydrate();
+      const data = await fetchDataAndHydrate();
+      if (!data) {
+        console.warn("فشل التحديث التلقائي للبيانات.");
+      }
     }, 10800000);
   }
 
@@ -1023,15 +1041,4 @@
     initializeDashboard();
   }
 
-  async function fetchDataAndHydrate() {
-    const data = await fetchSheetsOnce();
-    if (data) {
-      state.projectDates = data.projectDates;
-      hydrate(data);
-      state.lastUpdated = new Date();
-      document.getElementById(
-        "lastUpdate"
-      ).textContent = `آخر تحديث: ${formatDateTime(state.lastUpdated)}`;
-    }
-  }
 })();
