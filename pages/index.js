@@ -75,9 +75,10 @@ export default function Home() {
           </div>
           <div className="nav-controls">
             <div id="lastUpdate" className="lastUpdate">آخر تحديث: {lastUpdate}</div>
-            <button 
-              onClick={fetchData} 
-              className="btn refresh-btn" 
+            <button
+              id="refreshBtn"
+              onClick={fetchData}
+              className="btn refresh-btn"
               disabled={loading}
             >
               <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''}`}></i>
