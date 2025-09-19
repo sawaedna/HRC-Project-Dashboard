@@ -2,15 +2,16 @@
   console.log("app.js script loaded and executing.");
   if (typeof window === "undefined") return;
 
-  // Import and register ChartDataLabels plugin
-  if (typeof Chart !== 'undefined' && typeof ChartDataLabels === 'undefined') {
-    // Assuming ChartDataLabels is loaded globally by a script tag, if not, it needs to be imported.
-    // For now, we'll assume it's available or will be loaded.
-    // If not, a script tag for 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0' might be needed in _document.js
-    console.warn("ChartDataLabels plugin not found. Please ensure it's loaded.");
-  }
-  if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
-    Chart.register(ChartDataLabels);
+  // Import and register ChartDataLabels plugin (loaded globally from CDN in _app.js)
+  if (typeof Chart !== 'undefined') {
+    if (typeof ChartDataLabels === 'undefined') {
+      console.warn(
+        "ChartDataLabels plugin (expected v2.2.0) not found. Please ensure it's loaded before /js/app.js."
+      );
+    } else if (!window.__chartDataLabelsRegistered) {
+      Chart.register(ChartDataLabels);
+      window.__chartDataLabelsRegistered = true;
+    }
   }
 
   // ======== الحالة العامة ========

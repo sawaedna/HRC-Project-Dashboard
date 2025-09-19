@@ -55,7 +55,6 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <Script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js" strategy="beforeInteractive" />
-      <Script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" strategy="beforeInteractive" />
       <Script src="/js/app.js" strategy="afterInteractive" />
 
       <div className="container">
