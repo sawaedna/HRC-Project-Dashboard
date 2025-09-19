@@ -1,0 +1,24 @@
+{
+  "pages\\3d.js -> ../src/three/ThreeScene": {
+    "id": "pages\\3d.js -> ../src/three/ThreeScene",
+    "files": [
+      "static/chunks/src_three_ThreeScene_js.js"
+    ]
+  },
+  "pages\\index.js -> next/script": {
+    "id": "pages\\index.js -> next/script",
+    "files": []
+  },
+  "src\\three\\ThreeScene.js -> three": {
+    "id": "src\\three\\ThreeScene.js -> three",
+    "files": [
+      "static/chunks/node_modules_three_build_three_module_js.js"
+    ]
+  },
+  "src\\three\\ThreeScene.js -> three/examples/jsm/controls/OrbitControls": {
+    "id": "src\\three\\ThreeScene.js -> three/examples/jsm/controls/OrbitControls",
+    "files": [
+      "static/chunks/node_modules_three_examples_jsm_controls_OrbitControls_js.js"
+    ]
+  }
+}

@@ -1,114 +1,65 @@
-import fetch from 'node-fetch';
 import XLSX from 'xlsx';
+import fs from 'fs';
+import path from 'path';
+
+// Read and parse local Excel file located in repo root
+function readLocalExcel() {
+  const filePath = path.join(process.cwd(), 'Sawaedna_Geo_Progress_v2.xlsx');
+  if (!fs.existsSync(filePath)) throw new Error('Local Excel file not found: ' + filePath);
+  const buffer = fs.readFileSync(filePath);
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0];
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: null, raw: false });
+  return rows.filter(row => Object.values(row).some(v => v !== null && v !== undefined && v !== ''));
+}
+
+function normalizePercentCell(v) {
+  if (v == null) return 0;
+  if (typeof v === 'number') return v > 1 ? v / 100 : v;
+  const s = String(v).trim().replace('%', '').replace(',', '.');
+  const n = parseFloat(s);
+  if (isNaN(n)) return 0;
+  return n > 1 ? n / 100 : n;
+}
+
+function generateSummary(data) {
+  const map = {};
+  data.forEach(r => {
+    const site = r['الموقع'] || 'غير محدد';
+    if (!map[site]) map[site] = { planned: [], actual: [], lat: r.Latitude || r.latitude || null, lng: r.Longitude || r.longitude || null };
+    map[site].planned.push(normalizePercentCell(r['النسبة المخططة (%)']));
+    map[site].actual.push(normalizePercentCell(r['النسبة الفعلية (%)']));
+  });
+  return Object.entries(map).map(([site, v]) => ({
+    'الموقع': site,
+    'متوسط النسبة المخططة': v.planned.length ? v.planned.reduce((a,b)=>a+b,0)/v.planned.length : 0,
+    'متوسط النسبة الفعلية': v.actual.length ? v.actual.reduce((a,b)=>a+b,0)/v.actual.length : 0,
+    'Latitude': v.lat,
+    'Longitude': v.lng
+  }));
+}
+
+function calculateProjectDates(data) {
+  const starts = data.map(r => r['تاريخ البداية']).filter(Boolean).map(d => new Date(d)).map(dt => dt.getTime());
+  const ends = data.map(r => r['تاريخ النهاية']).filter(Boolean).map(d => new Date(d)).map(dt => dt.getTime());
+  if (!starts.length || !ends.length) return { totalDays: 0, elapsed: 0, remaining: 0 };
+  const start = Math.min(...starts); const end = Math.max(...ends);
+  const totalDays = Math.ceil((end - start)/(1000*60*60*24));
+  const elapsed = Math.max(0, Math.ceil((Date.now() - start)/(1000*60*60*24)));
+  const remaining = Math.max(0, totalDays - elapsed);
+  return { totalDays, elapsed, remaining };
+}
 
 export default async function handler(req, res) {
   try {
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDa_RClRJJzLiqGbIx4JKDRcbuhoBdZQSgXCXv-5xBix6gifHCwNvGgwZHe3v5kQfxrhs_i5AW9X2D/pub?output=xlsx";
-    const response = await fetch(sheetUrl);
-
-    if (!response.ok) {
-      return res.status(500).json({ error: `Failed to load file from Google Sheets (${response.status})` });
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const data = new Uint8Array(arrayBuffer);
-    const workbook = XLSX.read(data, { type: "array" });
-
-    // تجهيز البيانات مع فلترة الصفوف الفارغة
-    const rawData = XLSX.utils.sheet_to_json(workbook.Sheets["Sheet1"], {
-      defval: null,
-      raw: false,
-    }).filter(row => {
-      // تحقق من أن الصف يحتوي على بيانات فعلية وليست فارغة بالكامل
-      return Object.values(row).some(value => 
-        value !== null && value !== undefined && value !== ''
-      );
-    });
-
-    // Process rawData to create detailed, summary, and geo structures
-    const detailed = rawData.map(row => {
-      const newRow = { ...row };
-
-      // Convert date strings to Date objects for 'تاريخ البداية' and 'تاريخ النهاية'
-      // XLSX.utils.sheet_to_json with raw:false often returns dates as formatted strings
-      if (typeof newRow['تاريخ البداية'] === 'string') {
-        try {
-          newRow['تاريخ البداية'] = new Date(newRow['تاريخ البداية']);
-        } catch (e) {
-          newRow['تاريخ البداية'] = null;
-        }
-      }
-      if (typeof newRow['تاريخ النهاية'] === 'string') {
-        try {
-          newRow['تاريخ النهاية'] = new Date(newRow['تاريخ النهاية']);
-        } catch (e) {
-          newRow['تاريخ النهاية'] = null;
-        }
-      }
-
-      // Ensure percentages are parsed correctly. They should already be strings like '15%' with raw:false
-      // The frontend normalizePercent function will handle the conversion to number.
-
-      return newRow;
-    });
-
-    // Aggregate summary data (example logic, adjust as needed)
-    const summaryMap = {};
-    detailed.forEach(row => {
-      const site = row['الموقع'] || 'غير محدد';
-      if (!summaryMap[site]) {
-        summaryMap[site] = {
-          'الموقع': site,
-          'النسبة المخططة (%)': [],
-          'النسبة الفعلية (%)': [],
-          'Latitude': row['Latitude'] || 0,
-          'Longitude': row['Longitude'] || 0,
-        };
-      }
-      if (row['النسبة المخططة (%)'] !== null) summaryMap[site]['النسبة المخططة (%)'].push(parseFloat(String(row['النسبة المخططة (%)']).replace('%', '')) / 100);
-      if (row['النسبة الفعلية (%)'] !== null) summaryMap[site]['النسبة الفعلية (%)'].push(parseFloat(String(row['النسبة الفعلية (%)']).replace('%', '')) / 100);
-    });
-
-    const summary = Object.values(summaryMap).map(s => ({
-      'الموقع': s['الموقع'],
-      'متوسط النسبة المخططة': s['النسبة المخططة (%)'].length ? (s['النسبة المخططة (%)'].reduce((acc, val) => acc + val, 0) / s['النسبة المخططة (%)'].length) : 0,
-      'متوسط النسبة الفعلية': s['النسبة الفعلية (%)'].length ? (s['النسبة الفعلية (%)'].reduce((acc, val) => acc + val, 0) / s['النسبة الفعلية (%)'].length) : 0,
-      'Latitude': s['Latitude'],
-      'Longitude': s['Longitude'],
-    }));
-
-    // Geo data can be the same as summary if it contains lat/lng
-    const geo = summary.filter(s => s.Latitude && s.Longitude);
-
-    // Calculate project dates
-    const projectDates = (() => {
-      const parsedDates = detailed
-        .map(r => {
-          const start = r["تاريخ البداية"];
-          const end = r["تاريخ النهاية"];
-          return start && end ? { start, end } : start ? { start, end: start } : null;
-        })
-        .filter(Boolean);
-
-      if (!parsedDates.length) return null;
-
-      const starts = parsedDates.map(x => x.start.getTime());
-      const ends = parsedDates.map(x => x.end.getTime());
-
-      const min = new Date(Math.min(...starts));
-      const max = new Date(Math.max(...ends));
-      const today = new Date();
-
-      const totalDays = Math.max(1, Math.ceil((max - min) / (1000 * 60 * 60 * 24))) + 1;
-      const elapsed = Math.max(0, Math.ceil((today - min) / (1000 * 60 * 60 * 24)));
-      const remaining = Math.max(0, Math.ceil((max - today) / (1000 * 60 * 60 * 24)));
-
-      return { totalDays, elapsed, remaining };
-    })();
-
-    return res.status(200).json({ data: { detailed, summary, geo, projectDates } });
+    // Always use local Excel for now (future: replace with Google Sheets API using service account)
+    const data = readLocalExcel();
+    const summary = generateSummary(data);
+    const geo = summary.filter(s => s.Latitude != null && s.Longitude != null);
+    const projectDates = calculateProjectDates(data);
+    return res.status(200).json({ data: { detailed: data, summary, geo, projectDates } });
   } catch (err) {
-    console.error("API Error:", err);
+    console.error('sheets API error', err);
     return res.status(500).json({ error: err.message || String(err) });
   }
 }

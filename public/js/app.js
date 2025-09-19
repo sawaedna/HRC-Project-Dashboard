@@ -382,23 +382,23 @@
     const pd = computeProjectDates();
 
     container.innerHTML = `
-      <div class="card kpi"><h3>عدد المواقع</h3><div class="value">${sitesCount}</div></div>
-      <div class="card kpi"><h3>متوسط المخطط</h3><div class="value">${pct(
+      <div class="card kpi kpi-sites"><h3>عدد المواقع</h3><div class="value">${sitesCount}</div></div>
+      <div class="card kpi kpi-plan"><h3>متوسط المخطط</h3><div class="value">${pct(
         avgPlan
       )}</div></div>
-      <div class="card kpi"><h3>متوسط الفعلي</h3><div class="value">${pct(
+      <div class="card kpi kpi-actual"><h3>متوسط الفعلي</h3><div class="value">${pct(
         avgActual
       )}</div></div>
-      <div class="card kpi"><h3>متوسط الانحراف</h3><div class="value" style="color:${
+      <div class="card kpi kpi-delta"><h3>متوسط الانحراف</h3><div class="value" style="color:${
         avgDelta < 0 ? "var(--danger)" : "var(--success)"
       }">${pct(avgDelta)}</div></div>
-      <div class="card kpi"><h3>مدة المشروع (يوم)</h3><div class="value">${
+      <div class="card kpi kpi-duration"><h3>مدة المشروع (يوم)</h3><div class="value">${
         pd ? pd.totalDays : "—"
       }</div></div>
-      <div class="card kpi"><h3>الأيام المنقضية</h3><div class="value">${
+      <div class="card kpi kpi-elapsed"><h3>الأيام المنقضية</h3><div class="value">${
         pd ? pd.elapsed : "—"
       }</div></div>
-      <div class="card kpi"><h3>الأيام المتبقية</h3><div class="value">${
+      <div class="card kpi kpi-remaining"><h3>الأيام المتبقية</h3><div class="value">${
         pd ? pd.remaining : "—"
       }</div></div>
     `;
@@ -959,47 +959,57 @@
       renderAll();
     });
 
-    document.getElementById("tableSiteFilter").addEventListener("change", (e) => {
+    // Safe DOM bindings: check element exists before attaching listeners
+    const elTableSiteFilter = document.getElementById("tableSiteFilter");
+    if (elTableSiteFilter) elTableSiteFilter.addEventListener("change", (e) => {
       applyFilters('table');
       renderAll();
     });
-    document.getElementById("tablePhaseFilter").addEventListener("change", (e) => {
+
+    const elTablePhaseFilter = document.getElementById("tablePhaseFilter");
+    if (elTablePhaseFilter) elTablePhaseFilter.addEventListener("change", (e) => {
       applyFilters('table');
       renderAll();
     });
-    document.getElementById("tableItemFilter").addEventListener("change", (e) => {
+
+    const elTableItemFilter = document.getElementById("tableItemFilter");
+    if (elTableItemFilter) elTableItemFilter.addEventListener("change", (e) => {
       applyFilters('table');
       renderAll();
     });
 
     // Table clear filter button
-    document.getElementById("tableDetailsClearFilter").addEventListener("click", () => {
-      state.selectedSite = null;
-      state.selectedPhase = null;
-      state.selectedItem = null;
-      
-      ["siteFilter", "phaseFilter", "itemFilter", 
-       "chartSiteFilter", "mapSiteFilter",
-       "tableSiteFilter", "tablePhaseFilter", "tableItemFilter"].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) element.value = "";
+    const elTableDetailsClear = document.getElementById("tableDetailsClearFilter");
+    if (elTableDetailsClear) {
+      elTableDetailsClear.addEventListener("click", () => {
+        state.selectedSite = null;
+        state.selectedPhase = null;
+        state.selectedItem = null;
+        
+        ["siteFilter", "phaseFilter", "itemFilter", 
+         "chartSiteFilter", "mapSiteFilter",
+         "tableSiteFilter", "tablePhaseFilter", "tableItemFilter"].forEach(id => {
+          const element = document.getElementById(id);
+          if (element) element.value = "";
+        });
+        
+        applyFilters();
+        renderAll();
+        
+        if (state.map.instance && state.map.originalView) {
+          state.map.instance.setView(state.map.originalView.center, state.map.originalView.zoom);
+        }
       });
-      
-      applyFilters();
-      renderAll();
-      
-      if (state.map.instance && state.map.originalView) {
-        state.map.instance.setView(state.map.originalView.center, state.map.originalView.zoom);
-      }
-    });
+    }
 
-
-
-    document.getElementById("refreshBtn").addEventListener("click", async () => {
-      showLoader();
-      await fetchDataAndHydrate();
-      hideLoader();
-    });
+    const elRefreshBtn = document.getElementById("refreshBtn");
+    if (elRefreshBtn) {
+      elRefreshBtn.addEventListener("click", async () => {
+        showLoader();
+        await fetchDataAndHydrate();
+        hideLoader();
+      });
+    }
 
     state.refreshIntervalId = setInterval(async () => {
       console.log("Auto-refreshing data...");

@@ -1,4 +1,5 @@
 import '../styles/dashboard.css'
+import '../styles/three-dashboard.css'
 
 import Head from 'next/head'
 import Script from 'next/script'

@@ -1,10 +1,51 @@
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
+import { useState, useEffect } from 'react';
+
 const Script = dynamic(() => import('next/script'), {
   ssr: false
 });
 
 export default function Home() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [lastUpdate, setLastUpdate] = useState('—');
+  
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const res = await fetch(`/api/sheets`);
+      const json = await res.json();
+      
+      if (json.error) {
+        setError(json.error);
+        console.error('API Error:', json.error);
+        return;
+      }
+      
+      // Update the data in the window object for the app.js to use
+      window.dashboardData = json.data;
+      
+      // Trigger the update function if it exists
+      if (window.updateDashboard) {
+        window.updateDashboard();
+      }
+      
+  setLastUpdate(new Date().toLocaleString('ar-SA'));
+    } catch (e) {
+      setError(e.message);
+      console.error('Failed to fetch data:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Initial fetch
+    fetchData();
+  }, []);
   return (
     <>
       <Head>
@@ -33,8 +74,15 @@ export default function Home() {
             <div className="tab" data-tab="details">التفاصيل</div>
           </div>
           <div className="nav-controls">
-            <div id="lastUpdate" className="lastUpdate">آخر تحديث: —</div>
-            <button id="refreshBtn" className="btn refresh-btn"><i className="fas fa-sync-alt"></i> تحديث الآن</button>
+            <div id="lastUpdate" className="lastUpdate">آخر تحديث: {lastUpdate}</div>
+            <button 
+              onClick={fetchData} 
+              className="btn refresh-btn" 
+              disabled={loading}
+            >
+              <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''}`}></i>
+              {loading ? 'جاري التحديث...' : 'تحديث الآن'}
+            </button>
             <button id="themeBtn" className="btn">🌓</button>
           </div>
         </div>
@@ -42,29 +90,30 @@ export default function Home() {
 
       <div className="right-aligned-content">
         <div id="viewSummary">
-
-          <div className="filters" style={{ marginTop: '12px' }}>
+          <div className="filters" style={{ marginTop: '0px' }}>
             <div className="filter-group">
               <select id="siteFilter" className="select"><option value="">كل المواقع</option></select>
               <select id="phaseFilter" className="select"><option value="">كل المراحل</option></select>
               <select id="itemFilter" className="select"><option value="">كل البنود الرئيسية</option></select>
               <button id="clearFilter" className="btn clear-btn" style={{ display: 'none', marginRight: '8px', padding: '6px 10px', background: 'var(--danger)', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer' }}>🔄 إزالة الفلتر</button>
+              <div id="kpiArea" className="grid" style={{ marginBottom: '12px' }}></div>
             </div>
+            
           </div>
 
-          <div id="kpiArea" className="grid" style={{ marginBottom: '12px' }}></div>
+          
 
-          <div className="grid" style={{ marginBottom: '12px' }}>
+          <div className="paneeel" style={{ marginBottom: '12px' }}>
             <div className="panel card" style={{ position: 'relative' }}>
               <div className="panel-header">
                 <h3>مخطط/فعلي</h3>
                 <div className="chart-filter">
-                  <select id="chartSiteFilter" className="select" style={{ fontSize: '12px', padding: '4px 6px' }}><option value="">كل المواقع</option></select>
+                  <select id="chartSiteFilter" className="select" style={{ fontSize: '10px', padding: '4px 6px' }}><option value="">كل المواقع</option></select>
                 </div>
               </div>
-              <canvas id="chartPlanActual" style={{ height: '320px' }}></canvas>
+              <canvas id="chartPlanActual" style={{ height: '200px' }}></canvas>
             </div>
-            <div className="panel card" style={{ position: 'relative' }}>
+            <div className="panel mapo" style={{ position: 'relative' }}>
               <div className="panel-header">
                 <h3>المواقع</h3>
                 <div className="map-filter">

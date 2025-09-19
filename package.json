@@ -3,17 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 6005",
+    "dev": "next dev -p 12000",
     "build": "next build",
-    "start": "next start -p 6005"
+    "start": "next start -p 12000"
   },
   "dependencies": {
     "dayjs": "1.11.11",
     "googleapis": "131.0.0",
     "next": "14.2.32",
+    "node-fetch": "^3.3.2",
+    "papaparse": "^5.5.3",
     "pg": "8.11.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "three": "^0.180.0",
     "xlsx": "^0.18.5"
   }
 }
