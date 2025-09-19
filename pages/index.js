@@ -32,8 +32,8 @@ export default function Home() {
       if (window.updateDashboard) {
         window.updateDashboard();
       }
-      
-  setLastUpdate(new Date().toLocaleString('ar-SA'));
+
+      setLastUpdate(new Date().toLocaleString('ar-SA'));
     } catch (e) {
       setError(e.message);
       console.error('Failed to fetch data:', e);
@@ -57,23 +57,23 @@ export default function Home() {
       <Script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js" strategy="beforeInteractive" />
       <Script src="/js/app.js" strategy="afterInteractive" />
 
-      <div className="container">
-        <div className="topbar">
+      <div className="container dashboard-container">
+        <div className="topbar dashboard-topbar">
           <img src="/images/HRC_logo.png" alt="HRC Logo" className="logo logo-right" />
-          <div className="header-titles">
+          <div className="header-titles dashboard-header-titles">
             <h1 className="main-title">تنفيذ الهوية على مباني الهيئة</h1>
-            <div className="subtitle">تَغَيَّرَتْ هُوِّيَتُنَا وَقِيَمُنَا ثَابِتَةٌ</div>
+            <div className="subtitle dashboard-subtitle">تَغَيَّرَتْ هُوِّيَتُنَا وَقِيَمُنَا ثَابِتَةٌ</div>
           </div>
           <img src="/images/Sawaedna_Logo.png" alt="Sawaedna Logo" className="logo logo-left" />
         </div>
 
-        <div className="nav-bar">
-          <div className="tabs">
-            <div className="tab active" data-tab="summary">الملخص</div>
-            <div className="tab" data-tab="details">التفاصيل</div>
+        <div className="nav-bar dashboard-navbar">
+          <div className="tabs dashboard-tabs">
+            <div className="tab dashboard-tab active" data-tab="summary">الملخص</div>
+            <div className="tab dashboard-tab" data-tab="details">التفاصيل</div>
           </div>
-          <div className="nav-controls">
-            <div id="lastUpdate" className="lastUpdate">آخر تحديث: {lastUpdate}</div>
+          <div className="nav-controls dashboard-nav-controls">
+            <div id="lastUpdate" className="lastUpdate dashboard-last-update">آخر تحديث: {lastUpdate}</div>
             <button
               id="refreshBtn"
               onClick={fetchData}
@@ -86,78 +86,78 @@ export default function Home() {
             <button id="themeBtn" className="btn">🌓</button>
           </div>
         </div>
+        {error && (
+          <div className="dashboard-error-message">{error}</div>
+        )}
       </div>
 
-      <div className="right-aligned-content">
-        <div id="viewSummary">
-          <div className="filters" style={{ marginTop: '0px' }}>
-            <div className="filter-group">
+      <div className="right-aligned-content dashboard-content">
+        <div id="viewSummary" className="dashboard-summary-view">
+          <div className="filters dashboard-filters">
+            <div className="filter-group dashboard-filter-group">
               <select id="siteFilter" className="select"><option value="">كل المواقع</option></select>
               <select id="phaseFilter" className="select"><option value="">كل المراحل</option></select>
               <select id="itemFilter" className="select"><option value="">كل البنود الرئيسية</option></select>
-              <button id="clearFilter" className="btn clear-btn" style={{ display: 'none', marginRight: '8px', padding: '6px 10px', background: 'var(--danger)', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer' }}>🔄 إزالة الفلتر</button>
-              <div id="kpiArea" className="grid" style={{ marginBottom: '12px' }}></div>
+              <button id="clearFilter" className="btn clear-btn dashboard-clear-button">🔄 إزالة الفلتر</button>
+              <div id="kpiArea" className="grid dashboard-kpi-area"></div>
             </div>
-            
           </div>
 
-          
-
-          <div className="paneeel" style={{ marginBottom: '12px' }}>
-            <div className="panel card" style={{ position: 'relative' }}>
-              <div className="panel-header">
+          <div className="paneeel dashboard-panel-layout">
+            <div className="panel card dashboard-plan-actual-panel">
+              <div className="panel-header dashboard-panel-header">
                 <h3>مخطط/فعلي</h3>
-                <div className="chart-filter">
-                  <select id="chartSiteFilter" className="select" style={{ fontSize: '10px', padding: '4px 6px' }}><option value="">كل المواقع</option></select>
+                <div className="chart-filter dashboard-chart-filter">
+                  <select id="chartSiteFilter" className="select dashboard-chart-site-filter"><option value="">كل المواقع</option></select>
                 </div>
               </div>
-              <canvas id="chartPlanActual" style={{ height: '200px' }}></canvas>
+              <canvas id="chartPlanActual" className="dashboard-plan-actual-canvas"></canvas>
             </div>
-            <div className="panel mapo" style={{ position: 'relative' }}>
-              <div className="panel-header">
+            <div className="panel mapo dashboard-map-panel">
+              <div className="panel-header dashboard-panel-header">
                 <h3>المواقع</h3>
-                <div className="map-filter">
-                  <select id="mapSiteFilter" className="select" style={{ fontSize: '12px', padding: '4px 6px' }}><option value="">كل المواقع</option></select>
+                <div className="map-filter dashboard-map-filter">
+                  <select id="mapSiteFilter" className="select dashboard-map-site-filter"><option value="">كل المواقع</option></select>
                 </div>
               </div>
-              <div id="map" style={{ height: '320px', borderRadius: '8px' }}></div>
+              <div id="map" className="dashboard-map"></div>
             </div>
           </div>
 
-          <div className="card full">
-            <div className="chart-header">
+          <div className="card full dashboard-performance-card">
+            <div className="chart-header dashboard-performance-header">
               <h3 id="performanceTitle">أداء المواقع</h3>
-              <button id="performanceClearFilter" className="btn clear-btn" style={{ display: 'none' }}>🔄 إزالة الفلتر</button>
+              <button id="performanceClearFilter" className="btn clear-btn dashboard-clear-button">🔄 إزالة الفلتر</button>
             </div>
-            <div id="donutArea" className="donuts"></div>
-            <div id="gaugeArea" style={{ display: 'none', textAlign: 'center', padding: '20px' }}></div>
+            <div id="donutArea" className="donuts dashboard-donut-area"></div>
+            <div id="gaugeArea" className="dashboard-gauge-area"></div>
           </div>
 
         </div>
 
-        <div id="viewDetails" style={{ display: 'none' }}>
-          <div className="table-wrap card" style={{ marginTop: '12px' }}>
-            <div className="table-controls">
+        <div id="viewDetails" className="dashboard-details-view">
+          <div className="table-wrap card dashboard-table-card">
+            <div className="table-controls dashboard-table-controls">
               <strong>التفاصيل</strong>
-              <div className="table-filters">
-                <select id="tableSiteFilter" className="select" style={{ fontSize: '12px' }}><option value="">كل المواقع</option></select>
-                <select id="tablePhaseFilter" className="select" style={{ fontSize: '12px' }}><option value="">كل المراحل</option></select>
-                <select id="tableItemFilter" className="select" style={{ fontSize: '12px' }}><option value="">كل البنود</option></select>
-                <button id="tableDetailsClearFilter" className="btn clear-btn" style={{ display: 'none', marginRight: '8px', padding: '6px 10px', background: 'var(--danger)', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer' }}>🔄 إزالة الفلتر</button>
-                <input id="searchInput" placeholder="ابحث..." style={{ padding: '8px', borderRadius: '8px', background: 'var(--card)', color: 'var(--text)', border: '1px solid var(--glass)' }} />
+              <div className="table-filters dashboard-table-filters">
+                <select id="tableSiteFilter" className="select dashboard-table-select"><option value="">كل المواقع</option></select>
+                <select id="tablePhaseFilter" className="select dashboard-table-select"><option value="">كل المراحل</option></select>
+                <select id="tableItemFilter" className="select dashboard-table-select"><option value="">كل البنود</option></select>
+                <button id="tableDetailsClearFilter" className="btn clear-btn dashboard-clear-button">🔄 إزالة الفلتر</button>
+                <input id="searchInput" className="dashboard-search-input" placeholder="ابحث..." />
               </div>
             </div>
-            <div style={{ overflow: 'auto' }}>
+            <div className="dashboard-table-scroll">
               <table id="dataTable">
                 <thead id="tableHead"></thead>
                 <tbody id="tableBody"></tbody>
               </table>
             </div>
-            <div id="tableFooter" className="table-footer"></div>
+            <div id="tableFooter" className="table-footer dashboard-table-footer"></div>
           </div>
         </div>
       </div>
-      <div id="loader" className="loader" style={{ display: 'none' }}><div className="spinner"></div></div>
+      <div id="loader" className="loader dashboard-loader"><div className="spinner dashboard-spinner"></div></div>
     </>
   );
 }
