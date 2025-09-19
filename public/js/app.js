@@ -901,9 +901,9 @@
         this.classList.add("active");
         const view = this.dataset.tab;
         document.getElementById("viewSummary").style.display =
-          view === "summary" ? "block" : "none";
+          view === "summary" ? "grid" : "none";
         document.getElementById("viewDetails").style.display =
-          view === "details" ? "block" : "none";
+          view === "details" ? "grid" : "none";
         if (view === "summary") {
           renderCharts();
           renderPerformanceCharts();
