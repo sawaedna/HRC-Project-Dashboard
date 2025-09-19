@@ -204,7 +204,7 @@ body.light{
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px solid var(--glass);
-  padding: -1 6px 3px 6px;
+  padding: 0 6px 3px 6px;
   margin-top: -12px;
   height: 50px;
 }
@@ -342,10 +342,14 @@ body.light{
 .card {
   background:var(--card);
   border-radius:12px;
+  border:1px solid var(--glass);
   padding:24px;
   box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  backdrop-filter: blur(6px);
   transition:all 0.3s ease;
   height: 250px;
+  text-align: center;
+  justify-content: center;
 }
 
 .card:hover {
@@ -458,18 +462,6 @@ body.light .select:focus{
   grid-template-columns:repeat(5,355px);
   grid-template-rows: repeat(2,250px);
   gap:12px
-}
-
-.card{
-  background:var(--card);
-  border-radius:12px;
-  padding:10px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.35);
-  backdrop-filter: blur(6px);
-  border:1px solid var(--glass);
-  transition:all 0.3s ease;
-  text-align: center;
-  justify-content: center;
 }
 
 .kpi{
@@ -663,7 +655,7 @@ body.light .select:focus{
 
 /* Chart labels */
 .chart-label {
-  position: flexible;
+  position: relative;
   padding: 4px 8px;
   background: var(--card);
   border: 1px solid var(--glass);
