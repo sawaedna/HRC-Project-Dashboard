@@ -962,13 +962,13 @@ td {
     padding-bottom: 15px;
   }
 
-  .header-titles {
-    order: 1; /* يضع العناوين أولاً */
-    text-align: center; /* يوسط النص */
+  .logo-right {
+    order: 1; /* يضع الشعار الأيمن أولاً */
   }
 
-  .logo-right {
-    order: 2; /* يضع الشعار الأيمن ثانيًا */
+  .header-titles {
+    order: 2; /* يضع العناوين ثانيًا (في المنتصف) */
+    text-align: center; /* يوسط النص */
   }
 
   .logo-left {
