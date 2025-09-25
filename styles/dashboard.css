@@ -987,7 +987,7 @@ td {
 
 
 /* ==================== Enhancements for Screens Larger Than 1400px ==================== */
-@media (min-width: 1401px) {
+@media (min-width: 1800px) {
   /* نجعل الحاوية الرئيسية مرنة وتملأ المساحة المتاحة */
   .dashboard-main {
     height: 100%;
