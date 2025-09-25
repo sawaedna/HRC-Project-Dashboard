@@ -1,24 +1,20 @@
 {
-  "pages\\3d.js -> ../src/three/ThreeScene": {
-    "id": "pages\\3d.js -> ../src/three/ThreeScene",
+  "pages\\index.js -> ../src/component/DistributionPie": {
+    "id": "pages\\index.js -> ../src/component/DistributionPie",
     "files": [
-      "static/chunks/src_three_ThreeScene_js.js"
+      "static/chunks/src_component_DistributionPie_js.js"
     ]
   },
-  "pages\\index.js -> next/script": {
-    "id": "pages\\index.js -> next/script",
-    "files": []
-  },
-  "src\\three\\ThreeScene.js -> three": {
-    "id": "src\\three\\ThreeScene.js -> three",
+  "pages\\index.js -> ../src/component/MapView": {
+    "id": "pages\\index.js -> ../src/component/MapView",
     "files": [
-      "static/chunks/node_modules_three_build_three_module_js.js"
+      "static/chunks/src_component_MapView_js.js"
     ]
   },
-  "src\\three\\ThreeScene.js -> three/examples/jsm/controls/OrbitControls": {
-    "id": "src\\three\\ThreeScene.js -> three/examples/jsm/controls/OrbitControls",
+  "pages\\index.js -> ../src/component/TimelineChart": {
+    "id": "pages\\index.js -> ../src/component/TimelineChart",
     "files": [
-      "static/chunks/node_modules_three_examples_jsm_controls_OrbitControls_js.js"
+      "static/chunks/src_component_TimelineChart_js.js"
     ]
   }
 }

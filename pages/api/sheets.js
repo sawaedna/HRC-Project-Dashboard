@@ -2,17 +2,6 @@ import XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
 
-// Read and parse local Excel file located in repo root
-function readLocalExcel() {
-  const filePath = path.join(process.cwd(), 'Sawaedna_Geo_Progress_v2.xlsx');
-  if (!fs.existsSync(filePath)) throw new Error('Local Excel file not found: ' + filePath);
-  const buffer = fs.readFileSync(filePath);
-  const workbook = XLSX.read(buffer, { type: 'buffer' });
-  const sheetName = workbook.SheetNames[0];
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: null, raw: false });
-  return rows.filter(row => Object.values(row).some(v => v !== null && v !== undefined && v !== ''));
-}
-
 function normalizePercentCell(v) {
   if (v == null) return 0;
   if (typeof v === 'number') return v > 1 ? v / 100 : v;
@@ -20,6 +9,16 @@ function normalizePercentCell(v) {
   const n = parseFloat(s);
   if (isNaN(n)) return 0;
   return n > 1 ? n / 100 : n;
+}
+
+function readLocalExcel() {
+  const filePath = path.join(process.cwd(), 'data.xlsx');
+  if (!fs.existsSync(filePath)) throw new Error('Local Excel file not found: ' + filePath);
+  const buffer = fs.readFileSync(filePath);
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0];
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: null, raw: false });
+  return rows.filter(row => Object.values(row).some(v => v !== null && v !== undefined && v !== ''));
 }
 
 function generateSummary(data) {
@@ -52,7 +51,6 @@ function calculateProjectDates(data) {
 
 export default async function handler(req, res) {
   try {
-    // Always use local Excel for now (future: replace with Google Sheets API using service account)
     const data = readLocalExcel();
     const summary = generateSummary(data);
     const geo = summary.filter(s => s.Latitude != null && s.Longitude != null);
@@ -63,4 +61,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message || String(err) });
   }
 }
-

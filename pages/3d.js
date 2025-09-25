@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 
 // Load Three.js only on client
@@ -37,7 +37,7 @@ export default function Page3D() {
       <Head>
         <title>3D Data City - Prototype</title>
       </Head>
-      <div className="three-page" style={{ width: 1800, height: 850 }}>
+      <div className="three-page" style={{ width: '100%', maxWidth: 1800, height: '850px', margin: '0 auto' }}>
         <div className="left-panel">
           <h2>Data City</h2>
           <p>يستخدم المشروع بيانات الملف المحلي الآن.</p>
@@ -48,7 +48,7 @@ export default function Page3D() {
           </div>
         </div>
 
-        <div className="canvas-area">
+        <div className="canvas-area" style={{ width: '100%', height: '100%' }}>
           <ThreeScene data={data} width={1800 - 420} height={850} />
         </div>
       </div>
