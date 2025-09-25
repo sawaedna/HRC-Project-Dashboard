@@ -979,3 +979,34 @@ td {
     max-height: 50px; /* يصغّر حجم الشعار قليلاً على الموبايل */
   }
 }
+
+
+
+
+/******************❌❌❌❌❌❌❌❌❌❌❌*******************/
+
+
+/* ==================== Enhancements for Screens Larger Than 1400px ==================== */
+@media (min-width: 1401px) {
+  /* نجعل الحاوية الرئيسية مرنة وتملأ المساحة المتاحة */
+  .dashboard-main {
+    height: 100%;
+    overflow: hidden; /* لمنع أي سكول غير مرغوب فيه */
+  }
+
+  /* نجعل شبكة الملخص تملأ حاوية main بالكامل */
+  .dashboard-summary-view {
+    height: 100%;
+    /* الصف الأول والثاني يأخذان ارتفاع محتواهما، والصف الثالث يأخذ كل المساحة المتبقية */
+    grid-template-rows: auto auto 1fr;
+  }
+
+  /* نزيل الارتفاعات الثابتة من العناصر لتكون مرنة */
+  .dashboard-plan-actual-panel,
+  .timeline-panel,
+  .dashboard-map,
+  .distribution-pie-panel {
+    height: 100%;
+    max-height: none; /* نلغي الحد الأقصى للارتفاع */
+  }
+}
