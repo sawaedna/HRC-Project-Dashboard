@@ -232,6 +232,9 @@ body {
   grid-area: pie-dist;
 }
 
+
+
+
 /* ==================== Radar Chart Styles ==================== */
 .radar-panel {
   background: var(--card);
@@ -1009,4 +1012,36 @@ td {
     height: 100%;
     max-height: none; /* نلغي الحد الأقصى للارتفاع */
   }
+}
+
+
+
+
+
+
+/*❌❌❌❌*/
+/* Deviation Chart Styles */
+.summary-grid__pie-dist .panel-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    max-height: 300px;
+}
+
+.deviation-chart-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    position: relative;
+    min-height: 250px; /* Set a minimum height to avoid collapsing */
+    max-height: 250px;
+}
+
+.chart-canvas-wrapper {
+  flex: 1;
+  display: flex;
+  position: relative;
 }

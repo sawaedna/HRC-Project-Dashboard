@@ -1,8 +1,8 @@
 {
-  "pages\\index.js -> ../src/component/DistributionPie": {
-    "id": "pages\\index.js -> ../src/component/DistributionPie",
+  "pages\\index.js -> ../src/component/DeviationChart": {
+    "id": "pages\\index.js -> ../src/component/DeviationChart",
     "files": [
-      "static/chunks/src_component_DistributionPie_js.js"
+      "static/chunks/src_component_DeviationChart_js.js"
     ]
   },
   "pages\\index.js -> ../src/component/MapView": {

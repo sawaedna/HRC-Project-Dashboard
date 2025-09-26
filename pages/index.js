@@ -16,7 +16,7 @@ const TimelineChart = dynamic(() => import('../src/component/TimelineChart'), {
   ssr: false,
 });
 
-const DistributionPie = dynamic(() => import('../src/component/DistributionPie'), {
+const DeviationChart = dynamic(() => import('../src/component/DeviationChart'), {
   ssr: false,
 });
 
@@ -434,13 +434,19 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
         />
       </div>
 
-      {/* Distribution Pie Section */}
+      {/* Deviation Chart Section */}
       <div className="summary-grid__pie-dist">
-        <DistributionPie 
-          data={data}
-          filters={filters}
-          type="phases"
-        />
+        <section className="panel-card">
+           <div className="panel-header dashboard-panel-header">
+             <h3>مخطط أداء المواقع (الانحراف)</h3>
+           </div>
+           <div className="deviation-chart-container">
+            <DeviationChart
+                summary={summary}
+                setFilter={setFilter}
+              />
+           </div>
+        </section>
       </div>
     </section>
   );
