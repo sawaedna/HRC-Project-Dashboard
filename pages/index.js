@@ -51,17 +51,17 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
   useEffect(() => {
     if (!Chart) return;
 
-    // نسجّل chartjs-plugin-datalabels لو موجود
+    // We register chartjs-plugin-datalabels if it exists
     try { if (ChartDataLabels) Chart.register(ChartDataLabels); } catch (_) {}
 
-    // ✅ نسجّل بلجن كتابة النص مماسيًا على القوس مع شرط enabled وحارس منع التكرار
+    // ✅ We register a plugin for writing text tangentially to the arc with the enabled condition and a guard to prevent repetition
     try {
       Chart.register({
         id: 'tangentArcLabels',
-/*         beforeUpdate(chart) { chart.$tangentDrawn = false; },
+/* beforeUpdate(chart) { chart.$tangentDrawn = false; },
  */        afterDraw(chart, args, opts = {}) {
-          // لا يعمل إلا عند التفعيل صراحة داخل options.plugins.tangentArcLabels.enabled
-/*           if (!opts?.enabled || chart.$tangentDrawn) return;*/
+          // It only works when explicitly enabled inside options.plugins.tangentArcLabels.enabled
+/* if (!opts?.enabled || chart.$tangentDrawn) return;*/
               if (!opts?.enabled) return;
           chart.$tangentDrawn = true;
 
@@ -254,7 +254,7 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
             legend: { display: false },
             tooltip: { enabled: true },
             datalabels: { display: false },
-            // ✅ نفعل البلجن هنا لكن نرجّع نصًا فارغًا
+            // ✅ We activate the plugin here, but return an empty text
             tangentArcLabels: {
               enabled: true,
               formatter: () => '',
@@ -307,7 +307,7 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
               legend: { display: false },
               tooltip: { enabled: true },
               datalabels: { display: false },
-              // ✅ نفعل البلجن للمخططات الدائرية الصغيرة لعرض القيم إن أردت
+              // ✅ Activate the plugin for small pie charts to display values if you want
               tangentArcLabels: {
                 enabled: true,
                 color: '#0c0a0aff',
@@ -387,7 +387,7 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
             id="performanceClearFilter"
             className="btn clear-btn dashboard-clear-button"
             type="button"
-            style={{ display: (filters.site || filters.phase || filters.item) ? 'inline-block' : 'none' }}
+            style={{ display: (filters.site || filters.item) ? 'inline-block' : 'none' }}
             onClick={() => setFilter('clear')}
           >
             إزالة الفلتر
@@ -463,9 +463,8 @@ function DetailsView({ data, filters, setFilter }) {
     )
   ).filter(r => {
     const siteMatch = !filters.site || String(r["الموقع"] || "") === String(filters.site);
-    const phaseMatch = !filters.phase || String(r["المرحلة"] || "") === String(filters.phase);
     const itemMatch = !filters.item || String(r["البند الرئيسي"] || "") === String(filters.item);
-    return siteMatch && phaseMatch && itemMatch;
+    return siteMatch && itemMatch;
   });
 
   if (sortKey) {
@@ -491,13 +490,12 @@ function DetailsView({ data, filters, setFilter }) {
     }
   };
 
-  const headers = data.length > 0 ? Object.keys(data[0]) : [];
-  
+const headers = data.length > 0 ? Object.keys(data[0]).filter(h => h !== 'المرحلة' && h !== 'Latitude' && h !== 'TaskKey' && h !== 'SiteKey' && h !== 'Longitude') : [];  
+
   const handleTableFilterChange = (filterKey, value) => {
     setFilter(filterKey, value);
   };
 
-  const uniquePhases = [...new Set(data.map(d => d['المرحلة']))].sort();
   const uniqueItems = [...new Set(data.map(d => d['البند الرئيسي']))].sort();
   const uniqueSites = [...new Set(data.map(d => d['الموقع']))].sort();
 
@@ -514,12 +512,6 @@ function DetailsView({ data, filters, setFilter }) {
               label="كل المواقع"
             />
             <FilterSelect
-              options={uniquePhases}
-              value={filters.phase}
-              onChange={(e) => handleTableFilterChange('phase', e.target.value)}
-              label="كل المراحل"
-            />
-            <FilterSelect
               options={uniqueItems}
               value={filters.item}
               onChange={(e) => handleTableFilterChange('item', e.target.value)}
@@ -529,7 +521,7 @@ function DetailsView({ data, filters, setFilter }) {
               id="tableDetailsClearFilter"
               className="btn clear-btn dashboard-clear-button"
               type="button"
-              style={{ display: (filters.site || filters.phase || filters.item) ? 'inline-block' : 'none' }}
+              style={{ display: (filters.site || filters.item) ? 'inline-block' : 'none' }}
               onClick={() => setFilter('clear')}
             >
               إزالة الفلتر
@@ -578,7 +570,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('summary');
-  const [filters, setFilters] = useState({ site: null, phase: null, item: null });
+  const [filters, setFilters] = useState({ site: null, item: null });
   const [lastUpdate, setLastUpdate] = useState('—');
 
   const fetchSheetsData = useCallback(async () => {
@@ -635,9 +627,8 @@ function Home() {
     }
     const newFilteredDetailed = raw.detailed.filter(r => {
       const siteMatch = !filters.site || String(r["الموقع"] || "") === String(filters.site);
-      const phaseMatch = !filters.phase || String(r["المرحلة"] || "") === String(filters.phase);
       const itemMatch = !filters.item || String(r["البند الرئيسي"] || "") === String(filters.item);
-      return siteMatch && phaseMatch && itemMatch;
+      return siteMatch && itemMatch;
     });
 
     const newFilteredSummary = aggregateSummaryFromDetails(newFilteredDetailed);
@@ -652,7 +643,7 @@ function Home() {
 
   const setFilter = useCallback((key, value) => {
     if (key === 'clear') {
-      setFilters({ site: null, phase: null, item: null });
+      setFilters({ site: null, item: null });
     } else {
       setFilters(prev => ({ ...prev, [key]: value }));
     }
@@ -696,22 +687,6 @@ function Home() {
   
   const detailedDataForViews = raw.detailed || [];
   const uniqueSites = [...new Set(detailedDataForViews.map(d => d['الموقع']))].sort();
-  const allPhases = [...new Set(detailedDataForViews.map(d => d['المرحلة']))];
-  const phaseOrder = [
-    "المرحلة الأولى",
-    "المرحلة الثانية",
-    "المرحلة الثالثة",
-    "المرحلة الرابعة",
-    "المرحلة الخامسة"
-    // يمكنك إضافة المزيد من المراحل هنا بنفس الترتيب الصحيح إذا وجدت
-  ];
-  const uniquePhases = allPhases.sort((a, b) => {
-    const indexA = phaseOrder.indexOf(a);
-    const indexB = phaseOrder.indexOf(b);
-    if (indexA === -1) return 1; // وضع المراحل غير المعروفة في النهاية
-    if (indexB === -1) return -1;
-    return indexA - indexB;
-  });
   const uniqueItems = [...new Set(detailedDataForViews.map(d => d['البند الرئيسي']))].sort();
 
   return (
@@ -756,13 +731,6 @@ function Home() {
               id="siteFilter"
             />
             <FilterSelect
-              options={uniquePhases}
-              value={filters.phase}
-              onChange={(e) => setFilter('phase', e.target.value)}
-              label="كل المراحل"
-              id="phaseFilter"
-            />
-            <FilterSelect
               options={uniqueItems}
               value={filters.item}
               onChange={(e) => setFilter('item', e.target.value)}
@@ -773,7 +741,7 @@ function Home() {
               id="clearFilter"
               className="btn clear-btn dashboard-clear-button"
               type="button"
-              style={{ display: (filters.site || filters.phase || filters.item) ? 'inline-block' : 'none' }}
+              style={{ display: (filters.site || filters.item) ? 'inline-block' : 'none' }}
               onClick={() => setFilter('clear')}
             >
               إزالة الفلتر

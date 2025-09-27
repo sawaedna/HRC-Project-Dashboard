@@ -49,15 +49,17 @@ body {
 .dashboard-shell {
   /*width: 100vw;*/
   /*height: 100vh;*/
-  display: grid;
-  grid-template-rows: auto auto 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  padding: 8px;
+  padding: 20px;
   /*overflow: hidden;*/
   width: 100%;
   min-height: 100vh;     /* يكمل طول الشاشة كحد أدنى */
   height: auto;          /* يتمدد حسب المحتوى */
-  overflow: visible;        /* يسمح بالتمرير لو المحتوى زاد */
+  overflow: visible;
+  background-color: var(--background);
+        /* يسمح بالتمرير لو المحتوى زاد */
 }
 
 /* ==================== Header - Compact ==================== */
@@ -202,12 +204,12 @@ body {
 .dashboard-main {
   display: grid;
   gap: 8px;
-  /*overflow: hidden;*/
-  /*height: 100%;*/
+
   overflow: auto;     /* لو المحتوى جوّه زاد، يظهر سكرول داخلي أو للصفحة */
   height: auto;       /* ما يقيّدش الارتفاع */
   min-height: 0;      /* يمنع انكماش الـgrid item ويحل مشاكل قصّ المحتوى */
-
+  /*overflow: hidden;*/
+  /*height: 100%;*/
 }
 
 .dashboard-summary-view {
