@@ -715,12 +715,13 @@ function Home() {
             >
               الملخص
             </div>
-            <div
+{/* تم إخفاء تبويب التفاصيل بناءً على طلب المستخدم */}
+            {/*<div
               className={`tab dashboard-tab ${activeTab === 'details' ? 'active' : ''}`}
               onClick={() => setActiveTab('details')}
             >
               التفاصيل
-            </div>
+            </div>*/}
           </div>
           <div className="filter-group dashboard-filter-group">
             <FilterSelect
@@ -781,7 +782,8 @@ function Home() {
                   setFilter={setFilter}
                   projectDates={projectDates}
                 />
-              </div>
+{/* تم إخفاء محتوى التفاصيل بناءً على طلب المستخدم */}
+              {/*</div>
               <div style={{ display: activeTab === 'details' ? 'grid' : 'none', height: '100%' }}>
                 {detailedDataForViews.length > 0 ? (
                   <DetailsView
@@ -792,7 +794,7 @@ function Home() {
                 ) : (
                   <div className='panel-card'>لا توجد بيانات تفصيلية لعرضها.</div>
                 )}
-              </div>
+              </div>*/}
             </>
           )}
         </main>
