@@ -782,9 +782,9 @@ function Home() {
                   setFilter={setFilter}
                   projectDates={projectDates}
                 />
-{/* تم إخفاء محتوى التفاصيل بناءً على طلب المستخدم */}
-              {/*</div>
-              <div style={{ display: activeTab === 'details' ? 'grid' : 'none', height: '100%' }}>
+              </div>
+              {/* تم إخفاء محتوى التفاصيل بناءً على طلب المستخدم */}
+              {*/<div style={{ display: activeTab === 'details' ? 'grid' : 'none', height: '100%' }}>
                 {detailedDataForViews.length > 0 ? (
                   <DetailsView
                     data={detailedDataForViews}
