@@ -31,20 +31,48 @@ function generateSummary(data) {
   });
   return Object.entries(map).map(([site, v]) => ({
     'الموقع': site,
-    'متوسط النسبة المخططة': v.planned.length ? v.planned.reduce((a,b)=>a+b,0)/v.planned.length : 0,
-    'متوسط النسبة الفعلية': v.actual.length ? v.actual.reduce((a,b)=>a+b,0)/v.actual.length : 0,
+    'متوسط النسبة المخططة': v.planned.length ? v.planned.reduce((a, b) => a + b, 0) / v.planned.length : 0,
+    'متوسط النسبة الفعلية': v.actual.length ? v.actual.reduce((a, b) => a + b, 0) / v.actual.length : 0,
     'Latitude': v.lat,
     'Longitude': v.lng
   }));
 }
 
+function parseDate(v) {
+  if (!v) return null;
+  if (v instanceof Date && !isNaN(v)) return v.getTime();
+  if (typeof v === 'number') {
+    // Excel serial date handling if raw=true was used, but here raw=false strings are expected.
+    return new Date(Math.round((v - 25569) * 86400 * 1000)).getTime();
+  }
+  const str = String(v).trim();
+  // Try YYYY-MM-DD or MM/DD/YYYY (standard JS)
+  let d = new Date(str);
+  if (!isNaN(d.getTime())) return d.getTime();
+
+  // Try DD/MM/YYYY
+  const parts = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (parts) {
+    const day = parseInt(parts[1], 10);
+    const month = parseInt(parts[2], 10) - 1;
+    const year = parseInt(parts[3], 10);
+    d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+  return null;
+}
+
 function calculateProjectDates(data) {
-  const starts = data.map(r => r['تاريخ البداية']).filter(Boolean).map(d => new Date(d)).map(dt => dt.getTime());
-  const ends = data.map(r => r['تاريخ النهاية']).filter(Boolean).map(d => new Date(d)).map(dt => dt.getTime());
-  if (!starts.length || !ends.length) return { totalDays: 0, elapsed: 0, remaining: 0 };
-  const start = Math.min(...starts); const end = Math.max(...ends);
-  const totalDays = Math.ceil((end - start)/(1000*60*60*24));
-  const elapsed = Math.max(0, Math.ceil((Date.now() - start)/(1000*60*60*24)));
+  const starts = data.map(r => parseDate(r['تاريخ البداية'])).filter(t => t !== null);
+  // Fixed value as per user request
+  const totalDays = 120;
+
+  let elapsed = 0;
+  if (starts.length > 0) {
+    const start = Math.min(...starts);
+    elapsed = Math.max(0, Math.ceil((Date.now() - start) / (1000 * 60 * 60 * 24)));
+  }
+
   const remaining = Math.max(0, totalDays - elapsed);
   return { totalDays, elapsed, remaining };
 }

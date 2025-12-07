@@ -17,11 +17,15 @@
   --neon-g2: rgba(194, 205, 206, 0.35);
 }
 
-html, body {
-  height: auto;         /* بدلاً من 100vh */
+html,
+body {
+  height: auto;
+  /* بدلاً من 100vh */
   min-height: 100%;
-  overflow-y: auto;     /* يضمن السكروول عند ازدياد المحتوى (زوم/شاشة أصغر) */
-  overflow-x: hidden;   /* منع السحب الأفقي غير المرغوب */
+  overflow-y: auto;
+  /* يضمن السكروول عند ازدياد المحتوى (زوم/شاشة أصغر) */
+  overflow-x: hidden;
+  /* منع السحب الأفقي غير المرغوب */
 }
 
 
@@ -36,7 +40,8 @@ body {
   min-height: 100vh;
   line-height: 1.4;
   transition: background 0.3s ease, color 0.3s ease;
-  overflow: visible; /* Prevent scrolling */
+  overflow: visible;
+  /* Prevent scrolling */
 }
 
 *,
@@ -55,11 +60,13 @@ body {
   padding: 20px;
   /*overflow: hidden;*/
   width: 100%;
-  min-height: 100vh;     /* يكمل طول الشاشة كحد أدنى */
-  height: auto;          /* يتمدد حسب المحتوى */
+  min-height: 100vh;
+  /* يكمل طول الشاشة كحد أدنى */
+  height: auto;
+  /* يتمدد حسب المحتوى */
   overflow: visible;
   background-color: var(--background);
-        /* يسمح بالتمرير لو المحتوى زاد */
+  /* يسمح بالتمرير لو المحتوى زاد */
 }
 
 /* ==================== Header - Compact ==================== */
@@ -205,16 +212,19 @@ body {
   display: grid;
   gap: 8px;
 
-  overflow: auto;     /* لو المحتوى جوّه زاد، يظهر سكرول داخلي أو للصفحة */
-  height: auto;       /* ما يقيّدش الارتفاع */
-  min-height: 0;      /* يمنع انكماش الـgrid item ويحل مشاكل قصّ المحتوى */
+  overflow: auto;
+  /* لو المحتوى جوّه زاد، يظهر سكرول داخلي أو للصفحة */
+  height: auto;
+  /* ما يقيّدش الارتفاع */
+  min-height: 0;
+  /* يمنع انكماش الـgrid item ويحل مشاكل قصّ المحتوى */
   /*overflow: hidden;*/
   /*height: 100%;*/
 }
 
 .dashboard-summary-view {
   display: grid;
-  grid-template-areas: 
+  grid-template-areas:
     "kpis kpis gauges gauges"
     "performance performance performance performance"
     "map pie-dist chart-bar timeline";
@@ -225,7 +235,8 @@ body {
   /*overflow: hidden;*/
   height: auto;
   min-height: 0;
-  overflow: visible;    /* أو auto؛ visible أفضل هنا عشان الكروت تقدر تتمدّد */
+  overflow: visible;
+  /* أو auto؛ visible أفضل هنا عشان الكروت تقدر تتمدّد */
 
 }
 
@@ -348,9 +359,7 @@ body {
 }
 
 .pie-canvas {
-  width: 100% !important;
-  height: 100% !important;
-  max-height: 240px !important;
+  box-shadow: 0 4px 12px var(--glass);
 }
 
 /* ==================== KPI Cards - Compact ==================== */
@@ -364,15 +373,14 @@ body {
   border: 1px solid var(--glass);
   padding: 12px;
   box-shadow: 0 4px 12px var(--glass);
-    /* --- أضف الأسطر التالية --- */
   display: flex;
   flex-direction: column;
-  justify-content: center; /* للتوسيط العمودي */
+  justify-content: center;
 }
 
 .dashboard-kpi-area {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   justify-content: center;
 }
@@ -505,7 +513,8 @@ body {
   height: 100%;
   max-height: 180px;
   display: grid;
-  grid-template-rows: auto 1fr auto; /* عنوان، مخطط، معلومات الانحراف */
+  grid-template-rows: auto 1fr auto;
+  /* عنوان، مخطط، معلومات الانحراف */
   gap: 4px;
   align-items: center;
   text-align: center;
@@ -577,11 +586,16 @@ body {
 
 .gauge-item {
   text-align: center;
-  display: flex;             /* تغيير إلى flex */
-  flex-direction: row;       /* لترتيب العناصر أفقيًا */
-  justify-content: center;   /* لمحاذاة العناصر في المنتصف أفقيًا */
-  align-items: baseline;     /* لمحاذاة النصوص على نفس الخط الأساسي */
-  gap: 6px;                  /* لإضافة مسافة بين العنوان والقيمة */
+  display: flex;
+  /* تغيير إلى flex */
+  flex-direction: row;
+  /* لترتيب العناصر أفقيًا */
+  justify-content: center;
+  /* لمحاذاة العناصر في المنتصف أفقيًا */
+  align-items: baseline;
+  /* لمحاذاة النصوص على نفس الخط الأساسي */
+  gap: 6px;
+  /* لإضافة مسافة بين العنوان والقيمة */
 }
 
 .gauge-label {
@@ -593,6 +607,7 @@ body {
   font-size: 14px;
   font-weight: 700;
 }
+
 .summary-grid__map {
   grid-area: map;
 }
@@ -736,31 +751,37 @@ td {
 /* ==================== Responsive Adjustments ==================== */
 @media (max-width: 1400px) {
   .dashboard-summary-view {
-    grid-template-areas: 
+    grid-template-areas:
       "kpis kpis kpis gauges"
       "performance performance"
-      "map map rings rings" 
+      "map map rings rings"
       "chart-bar timeline pie-dist pie-dist";
   }
 }
 
 @media (max-width: 1200px) {
   .dashboard-summary-view {
-    grid-template-areas: 
+    grid-template-areas:
       "kpis kpis kpis gauges"
       "performance performance performance performance"
-      "chart-bar timeline map map" 
+      "chart-bar timeline map map"
       "pie-dist pie-dist pie-dist pie-dist";
     grid-template-rows: auto auto 1fr auto auto;
-    .dashboard-main { min-height: 0; }
-  .dashboard-summary-view { min-height: 0; }
+
+    .dashboard-main {
+      min-height: 0;
+    }
+
+    .dashboard-summary-view {
+      min-height: 0;
+    }
 
   }
-  
+
   .progress-rings-container {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
-  
+
   .ring-chart-container {
     width: 50px;
     height: 50px;
@@ -769,41 +790,49 @@ td {
 
 @media (max-width: 900px) {
   .dashboard-summary-view {
-    grid-template-areas: 
+    grid-template-areas:
       "kpis kpis"
-      "gauges gauges" 
+      "gauges gauges"
       "performance performance"
       "chart-bar map"
       "timeline timeline"
       "pie-dist pie-dist";
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto auto 1fr auto auto auto;
-    .dashboard-shell { height: auto; }
-    .dashboard-main, .dashboard-summary-view { overflow: auto; min-height: 0; }
+
+    .dashboard-shell {
+      height: auto;
+    }
+
+    .dashboard-main,
+    .dashboard-summary-view {
+      overflow: auto;
+      min-height: 0;
+    }
 
   }
-  
+
   .dashboard-header {
     grid-template-columns: 1fr;
     text-align: center;
     height: auto;
     padding: 12px;
   }
-  
+
   .dashboard-controls-bar {
     grid-template-columns: 1fr;
     height: auto;
     padding: 8px;
   }
-  
+
   .dashboard-filter-group {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .dashboard-kpi-area {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .gauges-container {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -811,9 +840,9 @@ td {
 
 @media (max-width: 600px) {
   .dashboard-summary-view {
-    grid-template-areas: 
+    grid-template-areas:
       "kpis"
-      "gauges" 
+      "gauges"
       "performance"
       "map"
       "chart-bar"
@@ -821,32 +850,40 @@ td {
       "pie-dist";
     grid-template-columns: 1fr;
     grid-template-rows: repeat(9, auto);
-    .dashboard-shell { height: auto; }
-  .dashboard-main, .dashboard-summary-view { overflow: auto; min-height: 0; }
+
+    .dashboard-shell {
+      height: auto;
+    }
+
+    .dashboard-main,
+    .dashboard-summary-view {
+      overflow: auto;
+      min-height: 0;
+    }
 
   }
-  
+
   .dashboard-shell {
     padding: 6px;
     gap: 6px;
   }
-  
+
   .dashboard-kpi-area {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .gauges-container {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   .progress-rings-container {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   .main-title {
     font-size: 18px;
   }
-  
+
   .subtitle {
     font-size: 12px;
   }
@@ -892,11 +929,11 @@ td {
 
 
 
+
 /* ==================== Specific Chart Overrides ==================== */
 
 /* ============ Neon Hover ============ */
-.dashboard-shell :is(
-  .dashboard-header,
+.dashboard-shell :is(.dashboard-header,
   .dashboard-controls-bar,
   .dashboard-tab,
   .btn,
@@ -917,13 +954,11 @@ td {
   .donut-card,
   .progress-rings-panel,
   .progress-ring-item,
-  .radar-panel
-) {
+  .radar-panel) {
   transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 
-.dashboard-shell :is(
-  .dashboard-header,
+.dashboard-shell :is(.dashboard-header,
   .dashboard-controls-bar,
   .dashboard-tab,
   .btn,
@@ -944,8 +979,7 @@ td {
   .donut-card,
   .progress-rings-panel,
   .progress-ring-item,
-  .radar-panel
-):hover {
+  .radar-panel):hover {
   border: 1px solid var(--neon) !important;
   box-shadow:
     0 0 0 2px var(--neon) inset,
@@ -961,27 +995,34 @@ td {
 /* Responsive Styles for Mobile */
 @media (max-width: 768px) {
   .dashboard-header {
-    flex-direction: column; /* يجعل العناصر تترتب فوق بعضها البعض */
-    gap: 15px; /* يضيف مسافة بين العناصر */
+    flex-direction: column;
+    /* يجعل العناصر تترتب فوق بعضها البعض */
+    gap: 15px;
+    /* يضيف مسافة بين العناصر */
     padding-top: 15px;
     padding-bottom: 15px;
   }
 
   .logo-right {
-    order: 1; /* يضع الشعار الأيمن أولاً */
+    order: 1;
+    /* يضع الشعار الأيمن أولاً */
   }
 
   .header-titles {
-    order: 2; /* يضع العناوين ثانيًا (في المنتصف) */
-    text-align: center; /* يوسط النص */
+    order: 2;
+    /* يضع العناوين ثانيًا (في المنتصف) */
+    text-align: center;
+    /* يوسط النص */
   }
 
   .logo-left {
-    order: 3; /* يضع الشعار الأيسر ثالثًا */
+    order: 3;
+    /* يضع الشعار الأيسر ثالثًا */
   }
 
   .logo {
-    max-height: 50px; /* يصغّر حجم الشعار قليلاً على الموبايل */
+    max-height: 50px;
+    /* يصغّر حجم الشعار قليلاً على الموبايل */
   }
 }
 
@@ -993,10 +1034,12 @@ td {
 
 /* ==================== Enhancements for Screens Larger Than 1400px ==================== */
 @media (min-width: 2400px) {
+
   /* نجعل الحاوية الرئيسية مرنة وتملأ المساحة المتاحة */
   .dashboard-main {
     height: 100%;
-    overflow: hidden; /* لمنع أي سكول غير مرغوب فيه */
+    overflow: hidden;
+    /* لمنع أي سكول غير مرغوب فيه */
   }
 
   /* نجعل شبكة الملخص تملأ حاوية main بالكامل */
@@ -1012,7 +1055,8 @@ td {
   .dashboard-map,
   .distribution-pie-panel {
     height: 100%;
-    max-height: none; /* نلغي الحد الأقصى للارتفاع */
+    max-height: none;
+    /* نلغي الحد الأقصى للارتفاع */
   }
 }
 
@@ -1024,22 +1068,23 @@ td {
 /*❌❌❌❌*/
 /* Deviation Chart Styles */
 .summary-grid__pie-dist .panel-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 1rem;
-    box-sizing: border-box;
-    max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  max-height: 300px;
 }
 
 .deviation-chart-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    position: relative;
-    min-height: 250px; /* Set a minimum height to avoid collapsing */
-    max-height: 250px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  position: relative;
+  min-height: 250px;
+  /* Set a minimum height to avoid collapsing */
+  max-height: 250px;
 }
 
 .chart-canvas-wrapper {

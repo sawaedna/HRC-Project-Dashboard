@@ -52,7 +52,7 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
     if (!Chart) return;
 
     // We register chartjs-plugin-datalabels if it exists
-    try { if (ChartDataLabels) Chart.register(ChartDataLabels); } catch (_) {}
+    try { if (ChartDataLabels) Chart.register(ChartDataLabels); } catch (_) { }
 
     // ✅ We register a plugin for writing text tangentially to the arc with the enabled condition and a guard to prevent repetition
     try {
@@ -61,21 +61,21 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
 /* beforeUpdate(chart) { chart.$tangentDrawn = false; },
  */        afterDraw(chart, args, opts = {}) {
           // It only works when explicitly enabled inside options.plugins.tangentArcLabels.enabled
-/* if (!opts?.enabled || chart.$tangentDrawn) return;*/
-              if (!opts?.enabled) return;
+          /* if (!opts?.enabled || chart.$tangentDrawn) return;*/
+          if (!opts?.enabled) return;
           chart.$tangentDrawn = true;
 
           const ctx = chart.ctx;
           const meta = chart.getDatasetMeta(0);
-          const ds   = chart.data?.datasets?.[0];
+          const ds = chart.data?.datasets?.[0];
           if (!meta || !ds) return;
 
-          const font   = opts.font || {};
-          const size   = font.size   || 12;
+          const font = opts.font || {};
+          const size = font.size || 12;
           const family = font.family || 'Cairo';
           const weight = font.weight || 'bold';
-          const color  = opts.color  || '#fff';
-          const min    = opts.minValue || 0;
+          const color = opts.color || '#fff';
+          const min = opts.minValue || 0;
 
           meta.data.forEach((arc, i) => {
             const v = Number(ds.data?.[i] ?? 0);
@@ -84,9 +84,9 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
               : (v >= min ? `${v.toFixed(1)}%` : '');
             if (!text) return;
 
-            const { startAngle, endAngle, innerRadius, outerRadius, x, y } = arc.getProps(['startAngle','endAngle','innerRadius','outerRadius','x','y'], true);
+            const { startAngle, endAngle, innerRadius, outerRadius, x, y } = arc.getProps(['startAngle', 'endAngle', 'innerRadius', 'outerRadius', 'x', 'y'], true);
             const mid = (startAngle + endAngle) / 2;
-            const r   = (innerRadius + outerRadius) / 2;
+            const r = (innerRadius + outerRadius) / 2;
 
             const tx = x + Math.cos(mid) * r;
             const ty = y + Math.sin(mid) * r;
@@ -111,7 +111,7 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
           });
         },
       });
-    } catch (_) {}
+    } catch (_) { }
   }, [Chart, ChartDataLabels]);
 
   const renderCharts = useCallback(() => {
@@ -119,7 +119,7 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
     if (chartRef.current) {
       chartRef.current.destroy();
     }
-    
+
     const labels = summary.map((s) => s['الموقع'] || '');
     const plan = summary.map((s) => normalizePercent(s['متوسط النسبة المخططة'] || 0) * 100);
     const actual = summary.map((s) => normalizePercent(s['متوسط النسبة الفعلية'] || 0) * 100);
@@ -165,14 +165,14 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
           const site = labels[idx];
           setFilter('site', site);
         },
-        scales: { 
-          y: { 
-            beginAtZero: true, 
+        scales: {
+          y: {
+            beginAtZero: true,
             max: 100,
             ticks: { font: { size: 9 } }
           },
           x: {
-            ticks: { 
+            ticks: {
               font: { size: 9 },
               maxRotation: 45
             }
@@ -185,23 +185,23 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
 
   const renderPerformanceCharts = useCallback(() => {
     if (!Chart || !donutAreaRef.current || !gaugeAreaRef.current || !performanceTitleRef.current) return;
-  
+
     donutRefs.current.forEach(c => c.destroy());
     if (gaugeRef.current) gaugeRef.current.destroy();
     donutRefs.current = [];
     gaugeRef.current = null;
-  
+
     if (filters.site && summary.length === 1) {
       donutAreaRef.current.style.display = 'none';
       gaugeAreaRef.current.style.display = 'block';
       performanceTitleRef.current.textContent = `أداء موقع: ${filters.site}`;
-  
+
       const s = summary[0];
       const planVal = normalizePercent(s['متوسط النسبة المخططة'] || s['النسبة المخططة (%)'] || 0) * 100;
       const actVal = normalizePercent(s['متوسط النسبة الفعلية'] || s['النسبة الفعلية (%)'] || 0) * 100;
       const deviation = (actVal - planVal).toFixed(1);
       const deviationColor = deviation >= 0 ? 'var(--success)' : 'var(--danger)';
-  
+
       gaugeAreaRef.current.innerHTML = `
         <div class="gauge-container">
           <canvas id="gaugeChart"></canvas>
@@ -225,10 +225,10 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
           </div>
         </div>
       `;
-  
+
       const ctx = document.getElementById("gaugeChart")?.getContext("2d");
       if (!ctx) return;
-      
+
       const newGauge = new Chart(ctx, {
         type: "doughnut",
         data: {
@@ -268,13 +268,13 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
       gaugeAreaRef.current.style.display = 'none';
       performanceTitleRef.current.textContent = 'أداء المواقع';
       donutAreaRef.current.innerHTML = '';
-      
+
       summary.forEach((s, index) => {
         const planVal = normalizePercent(s['متوسط النسبة المخططة'] || s['النسبة المخططة (%)'] || 0) * 100;
         const actVal = normalizePercent(s['متوسط النسبة الفعلية'] || s['النسبة الفعلية (%)'] || 0) * 100;
         const deviation = (actVal - planVal).toFixed(1);
         const deviationColor = deviation >= 0 ? 'var(--success)' : 'var(--danger)';
-  
+
         const el = document.createElement("div");
         el.className = "panel-card donut-card";
         el.style.height = "180px";
@@ -290,14 +290,14 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
         donutAreaRef.current.appendChild(el);
         const ctx = document.getElementById(`donutChart-${index}`)?.getContext("2d");
         if (!ctx) return;
-        
+
         const chart = new Chart(ctx, {
           type: "doughnut",
           data: {
             labels: ["مخطط", "فعلي"],
-            datasets: [{ 
-              data: [planVal, actVal], 
-              backgroundColor: ["rgba(79,140,255,0.95)", "rgba(34,197,94,0.95)"] 
+            datasets: [{
+              data: [planVal, actVal],
+              backgroundColor: ["rgba(79,140,255,0.95)", "rgba(34,197,94,0.95)"]
             }],
           },
           options: {
@@ -329,7 +329,7 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
       renderCharts();
       renderPerformanceCharts();
     }
-    
+
     return () => {
       if (chartRef.current) {
         chartRef.current.destroy();
@@ -356,26 +356,26 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
             <div className="value">{sitesCount}</div>
           </div>
           <div className="kpi-card kpi kpi-duration">
-            <h3>مدة المشروع</h3>
-            <div className="value">{projectDates?.totalDays || '—'}</div>
+            <h3>متوسط المدة لكل موقع</h3>
+            <div className="value">{projectDates?.totalDays ?? '—'}</div>
           </div>
           <div className="kpi-card kpi kpi-elapsed">
-            <h3>الأيام المنقضية</h3>
-            <div className="value">{projectDates?.elapsed || '—'}</div>
+            <h3>الايام المنقضية منذ استلام اول موقع</h3>
+            <div className="value">{projectDates?.elapsed ?? '—'}</div>
           </div>
-          <div className="kpi-card kpi kpi-remaining">
+          {/* <div className="kpi-card kpi kpi-remaining">
             <h3>الأيام المتبقية</h3>
             <div className="value">{projectDates?.remaining || '—'}</div>
-          </div>
+          </div> */}
         </div>
       </section>
 
       {/* Gauges Section */}
       <section className="gauges-panel summary-grid__gauges">
-        <GlobalGauges 
-          avgPlan={avgPlan} 
-          avgActual={avgActual} 
-          avgDeviation={avgDelta} 
+        <GlobalGauges
+          avgPlan={avgPlan}
+          avgActual={avgActual}
+          avgDeviation={avgDelta}
         />
       </section>
 
@@ -427,7 +427,7 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
 
       {/* Timeline Section */}
       <div className="summary-grid__timeline">
-        <TimelineChart 
+        <TimelineChart
           data={data}
           filters={filters}
           projectDates={projectDates}
@@ -437,15 +437,15 @@ function SummaryView({ data, summary, geo, filters, setFilter, projectDates }) {
       {/* Deviation Chart Section */}
       <div className="summary-grid__pie-dist">
         <section className="panel-card">
-           <div className="panel-header dashboard-panel-header">
-             <h3>مخطط أداء المواقع (الانحراف)</h3>
-           </div>
-           <div className="deviation-chart-container">
+          <div className="panel-header dashboard-panel-header">
+            <h3>مخطط أداء المواقع (الانحراف)</h3>
+          </div>
+          <div className="deviation-chart-container">
             <DeviationChart
-                summary={summary}
-                setFilter={setFilter}
-              />
-           </div>
+              summary={summary}
+              setFilter={setFilter}
+            />
+          </div>
         </section>
       </div>
     </section>
@@ -490,7 +490,7 @@ function DetailsView({ data, filters, setFilter }) {
     }
   };
 
-const headers = data.length > 0 ? Object.keys(data[0]).filter(h => h !== 'المرحلة' && h !== 'Latitude' && h !== 'TaskKey' && h !== 'SiteKey' && h !== 'Longitude') : [];  
+  const headers = data.length > 0 ? Object.keys(data[0]).filter(h => h !== 'المرحلة' && h !== 'Latitude' && h !== 'TaskKey' && h !== 'SiteKey' && h !== 'Longitude') : [];
 
   const handleTableFilterChange = (filterKey, value) => {
     setFilter(filterKey, value);
@@ -579,7 +579,7 @@ function Home() {
     try {
       const res = await fetch(`/api/sheets?t=${Date.now()}`);
       if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
       const json = await res.json();
       if (json.error) {
@@ -610,7 +610,7 @@ function Home() {
       acc[site].actual.push(normalizePercent(r['النسبة الفعلية (%)'] || r['النسبة الفعلية'] || 0));
       return acc;
     }, {});
-    
+
     return Object.values(map).map(v => ({
       'الموقع': v.site,
       'متوسط النسبة المخططة': avg(v.plan),
@@ -651,8 +651,8 @@ function Home() {
 
   const hydrateData = useCallback((data) => {
     if (!data) {
-        setRaw({ detailed: [], summary: [], geo: [] });
-        return;
+      setRaw({ detailed: [], summary: [], geo: [] });
+      return;
     };
     const detailed = (data.detailed || data.data?.detailed || [])
       .filter(row => row && row["الموقع"] && String(row["الموقع"]).trim() !== "");
@@ -660,7 +660,7 @@ function Home() {
       .filter(row => row && row["الموقع"] && String(row["الموقع"]).trim() !== "");
     const geo = (data.geo || data.data?.geo || [])
       .filter(row => row && row["الموقع"] && String(row["الموقع"]).trim() !== "");
-    
+
     setRaw({ detailed, summary, geo });
     setProjectDates(data.projectDates ?? null);
     setLastUpdate(new Date().toLocaleString('ar-SA'));
@@ -684,7 +684,7 @@ function Home() {
   useEffect(() => {
     document.body.classList.add("light");
   }, []);
-  
+
   const detailedDataForViews = raw.detailed || [];
   const uniqueSites = [...new Set(detailedDataForViews.map(d => d['الموقع']))].sort();
   const uniqueItems = [...new Set(detailedDataForViews.map(d => d['البند الرئيسي']))].sort();
@@ -715,12 +715,12 @@ function Home() {
             >
               الملخص
             </div>
-            <div
+            {/* <div
               className={`tab dashboard-tab ${activeTab === 'details' ? 'active' : ''}`}
               onClick={() => setActiveTab('details')}
             >
               التفاصيل
-            </div>
+            </div> */}
           </div>
           <div className="filter-group dashboard-filter-group">
             <FilterSelect
@@ -764,12 +764,12 @@ function Home() {
         {error && (
           <div className="dashboard-error-message">حدث خطأ: {error}</div>
         )}
-        
+
         <main className="dashboard-main">
           {loading ? (
-             <div id="loader" className="loader dashboard-loader" style={{ display: 'flex' }}>
-                <div className="spinner dashboard-spinner"></div>
-             </div>
+            <div id="loader" className="loader dashboard-loader" style={{ display: 'flex' }}>
+              <div className="spinner dashboard-spinner"></div>
+            </div>
           ) : (
             <>
               <div style={{ display: activeTab === 'summary' ? 'grid' : 'none', height: '100%' }}>
